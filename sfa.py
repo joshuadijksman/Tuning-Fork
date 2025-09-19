@@ -101,15 +101,7 @@ class sfa():
 
     ##  sRa;      | This command returns the current shear sine out amplitude
     def sRa (self):
-        return self.write_read("sRa").replace("shear amplitude = ","")
-
-    ##  Rp;       | This command returns the current normal phase
-    def Rp (self):
-        return self.write_read("Rp").replace("normal phase = ","")
-
-    ##  sRp;       | This command returns the current shear phase
-    def sRp (self):
-        return self.write_read("sRp").replace("shear phase = ","")    
+        return self.write_read("sRa").replace("shear amplitude = ","")   
 
     ##  Ram;       | This command returns the current normal amplitude measured
     def Rm (self):
