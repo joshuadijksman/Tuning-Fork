@@ -6,33 +6,38 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-def heatmapPlot(fName, data, xTickLabels: list | None=None, yTickLabels: list | None=None, title: str = "Amplitude", xTicks=list(range(5)), yTicks=list(range(5))) -> None:
+def heatmapPlot(fName: str, data: list[list[int|float]], xTickLabels: list[int|float|str] | None=None, yTickLabels: list[int|float|str] | None=None, title: str = "Amplitude", xTicks: int = 10, yTicks: int = 10, xLabelRound: int = 4, yLabelRound: int = 4) -> None:
     fig = plt.figure()
     
     ax = sns.heatmap(data)
 
-    # if (not (type(xTickLabels)==None))  and (not (type(yTickLabels)==None)):
-    #     ax.set_xticks(xTicks)
-    #     if len(xTickLabels)==len(xTicks):
-    #         ax.set_xticklabels(xTickLabels)
-    #     else:
-    #         step = int(len(xTickLabels)/len(xTicks))
-    #         z=0
-    #         for i, _ in enumerate(xTicks):
-    #             xTicks[i] = xTickLabels[z]
-    #             z+=step
-    #         ax.set_xticklabels(xTicks)
+    if type(xTickLabels)!=None:
+        if len(xTickLabels)>=xTicks: 
+            xStep = int(len(data[0])/xTicks)
+            xSpots = list(range(0, len(data[0])+1, xStep))
+            ax.set_xticks(ticks=np.array(xSpots)+0.5)
         
-    #     ax.set_yticks(yTicks)
-    #     if len(yTickLabels)==len(yTicks):
-    #         ax.set_yticklabels(yTickLabels)
-    #     else:
-    #         step = int(len(yTickLabels)/len(yTicks))
-    #         z=0
-    #         for i, _ in enumerate(yTicks):
-    #             yTicks[i] = yTickLabels[z]
-    #             z+=step
-    #         ax.set_yticklabels(yTicks)
+            if len(xTickLabels)==xTicks:
+                ax.set_xticklabels(xTickLabels) 
+            else:
+                step = int(len(xTickLabels)/xTicks)
+                for i, _ in enumerate(xSpots):
+                    xSpots[i] = round(xTickLabels[i*step], xLabelRound)
+                ax.set_xticklabels(xSpots)
+        
+    if type(yTickLabels)!=None:
+        if len(yTickLabels)>=yTicks:
+            yStep = int(len(data)/yTicks)
+            ySpots = list(range(0, len(data)+1, yStep))
+            ax.set_yticks(np.array(ySpots)+0.5)
+
+            if len(yTickLabels)==yTicks:
+                ax.set_yticklabels(yTickLabels)
+            else:
+                step = int(len(yTickLabels)/yTicks)
+                for i, _ in enumerate(ySpots):
+                    ySpots[i] = round(yTickLabels[i*step], yLabelRound)
+                ax.set_yticklabels(ySpots)
 
     ax.set_ylabel("Normal Frequency (Hz)")
     ax.set_xlabel("Shear Frequency (Hz)")
