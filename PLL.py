@@ -140,7 +140,7 @@ def PLL2D(
                 phaseDegShear = 180.0
 
             print(f"Iteration {j:3d}: Frequency = {fResShear:.6f} Hz, "
-                f"Phase = {phaseDegShear:.2f} deg, ")
+                f"Phase = {phaseDegShear:.2f} deg")
 
             if abs(np.deg2rad(phaseDegShear)) < tolerance:
                 print(f"(Shear) PLL converged after {j} iterations with frequency {fResShear:.6f} Hz")
@@ -160,7 +160,7 @@ def PLL2D(
             phaseDegNormal = 180.0
 
         print(f"Iteration {i:3d}: Frequency = {fResNormal:.6f} Hz, "
-              f"Phase = {phaseDegNormal:.2f} deg, ")
+              f"Phase = {phaseDegNormal:.2f} deg")
 
         if abs(np.deg2rad(phaseDegNormal)) < tolerance:
             print(f"(Normal) PLL converged after {i} iterations with frequency {fResNormal:.6f} Hz")
@@ -233,7 +233,7 @@ def PLL2x1D(
             phaseDeg = 180.0
 
         print(f"Iteration {i:3d}: Frequency = {fResNormal:.6f} Hz, "
-              f"Phase = {phaseDeg:.2f} deg, ")
+              f"Phase = {phaseDeg:.2f} deg")
 
         if abs(np.deg2rad(phaseDeg)) < tolerance:
             print(f"(Normal) PLL converged after {i} iterations with frequency {fResNormal:.6f} Hz")
@@ -256,7 +256,7 @@ def PLL2x1D(
             phaseDeg = 180.0
 
         print(f"Iteration {i:3d}: Frequency = {fResShear:.6f} Hz, "
-              f"Phase = {phaseDeg:.2f} deg, ")
+              f"Phase = {phaseDeg:.2f} deg")
 
         # Check error tolerance
         if abs(np.deg2rad(phaseDeg)) < tolerance:
