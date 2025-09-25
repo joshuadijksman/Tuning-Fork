@@ -6,12 +6,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-def heatmapPlot(fName: str, data: list[list[int|float]] | np.ndarray, xTickLabels: list[int|float|str] | None=None, yTickLabels: list[int|float|str] | None=None, title: str = "Amplitude", xTicks: int = 10, yTicks: int = 10, xLabelRound: int = 4, yLabelRound: int = 4) -> None:
+def heatmapPlot(fName: str, data: list[list[int|float]] | np.ndarray, xTickLabels: list[int|float] = [], yTickLabels: list[int|float] = [], title: str = "Amplitude", xTicks: int = 10, yTicks: int = 10, xLabelRound: int = 4, yLabelRound: int = 4) -> None:
     fig = plt.figure()
     
     ax = sns.heatmap(data)
 
-    if type(xTickLabels)!=None:
+    if len(xTickLabels)!=0:
         if len(xTickLabels)>=xTicks: 
             xStep = int(len(data[0])/xTicks)
             xSpots = list(range(0, len(data[0])+1, xStep))
@@ -25,7 +25,7 @@ def heatmapPlot(fName: str, data: list[list[int|float]] | np.ndarray, xTickLabel
                     xSpots[i] = round(xTickLabels[i*step], xLabelRound)
                 ax.set_xticklabels(xSpots)
         
-    if type(yTickLabels)!=None:
+    if len(yTickLabels)!=0:
         if len(yTickLabels)>=yTicks:
             yStep = int(len(data)/yTicks)
             ySpots = list(range(0, len(data)+1, yStep))
