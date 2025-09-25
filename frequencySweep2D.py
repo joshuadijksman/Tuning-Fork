@@ -73,7 +73,9 @@ def main(
     ctrlNormal.Sa(0.006)
 
     normalAmplitudes = np.zeros((lenNormal,lenShear))
-    shearAmplitudes = np.zeros((lenNormal,lenShear))    
+    normalPhases = np.zeros((lenNormal, lenShear))
+    shearAmplitudes = np.zeros((lenNormal,lenShear))  
+    shearPhases = np.zeros((lenNormal, lenShear))  
 
     print(f"\nExpected loop time: {timedelta(seconds=lenNormal*lenShear*delay)}\n")
     tPre = time.time()
@@ -81,7 +83,10 @@ def main(
     for i, fNormal in enumerate(freqsNormal):
         print("Normal: "+str(fNormal)+" (Hz)")
         listNormal = np.zeros(lenNormal)
+        listNormalPhase = np.zeros(lenNormal)
         listShear = np.zeros(lenShear)
+        listShearPhase = np.zeros(lenShear)
+
         ctrlNormal.Sf(fNormal)
         for j, fShear in enumerate(freqsShear):
             ctrlShear.Sf(fShear)
@@ -90,17 +95,33 @@ def main(
                 listNormal[j] = [ctrlNormal.Rm() for _ in range(sampleDrops+1)][-1]
             except:
                 listNormal[j] = np.nan
+
+            try:
+                listNormalPhase[j] = [ctrlNormal.Rp() for _ in range(sampleDrops+1)][-1]
+            except:
+                listNormalPhase[j] = np.nan
+
             try:
                 listShear[j] = [ctrlShear.Rm() for _ in range(sampleDrops+1)][-1]
             except:
                 listShear[j] = np.nan
+
+            try:
+                listShearPhase[j] = [ctrlShear.Rp() for _ in range(sampleDrops+1)][-1]
+            except:
+                listShearPhase[j] = np.nan
+
         normalAmplitudes[i] = listNormal
+        normalPhases[i] = listNormalPhase
         shearAmplitudes[i] = listShear
-    
+        shearPhases[i] = listShearPhase
+
     print(f"\nFinished after: {timedelta(seconds=time.time()-tPre)}\n")
     
-    np.savetxt(fileName+"_Normal.csv", normalAmplitudes, delimiter=",")
-    np.savetxt(fileName+"_Shear.csv", shearAmplitudes, delimiter=",")
+    np.savetxt(fileName+"_NormalAmp.csv", normalAmplitudes, delimiter=",")
+    np.savetxt(fileName+"_ShearAmp.csv", shearAmplitudes, delimiter=",")
+    np.savetxt(fileName+"_NormalPha.csv", normalPhases, delimiter=",")
+    np.savetxt(fileName+"_ShearPha.csv", shearPhases, delimiter=",")
 
     relativeAbsoluteAmplitudes = np.sqrt(((normalAmplitudes/normalAmplitudes.max())**2+(shearAmplitudes/shearAmplitudes.max())**2)/2)
     heatmapPlot(fileName+"_Normal.png", normalAmplitudes, freqsShear, freqsNormal, title="Normal Amplitudes")
