@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-def heatmapPlot(fName: str, data: list[list[int|float]], xTickLabels: list[int|float|str] | None=None, yTickLabels: list[int|float|str] | None=None, title: str = "Amplitude", xTicks: int = 10, yTicks: int = 10, xLabelRound: int = 4, yLabelRound: int = 4) -> None:
+def heatmapPlot(fName: str, data: list[list[int|float]] | np.ndarray, xTickLabels: list[int|float|str] | None=None, yTickLabels: list[int|float|str] | None=None, title: str = "Amplitude", xTicks: int = 10, yTicks: int = 10, xLabelRound: int = 4, yLabelRound: int = 4) -> None:
     fig = plt.figure()
     
     ax = sns.heatmap(data)
@@ -66,7 +66,7 @@ def main(
     lenNormal = len(freqsNormal)
     lenShear = len(freqsShear)
 
-    ctrlShear = sfa.sfa()
+    ctrlShear = sfa.sfa(PID=0x7523, VID=0x1A86)
     ctrlNormal = sfa.sfa(PID=0x6001, VID=0x0403)
 
     ctrlShear.Sa(0.02)

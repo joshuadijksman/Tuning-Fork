@@ -276,7 +276,7 @@ def PLL2x1D(
 
 if __name__ == "__main__":
     # Create an instance of the sfa class.
-    ctrlNormal = sfa.sfa()
+    ctrlNormal = sfa.sfa(PID=0x7523, VID=0x1A86)
 
     # Run the PLL routine to estimate the resonance frequency.
     resonance_freq = PLL1D(ctrlNormal, gamma=15)

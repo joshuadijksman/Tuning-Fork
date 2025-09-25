@@ -26,7 +26,7 @@ def find_unique_dev_by_pidvid(pid: int, vid: int):
 
 class sfa():
 
-    def __init__(self, PID=0x7523, VID=0x1A86):
+    def __init__(self, PID, VID):
         
         port = str(find_unique_dev_by_pidvid(pid=PID, vid=VID)).split(" ")[0]
         self.ser = serial.Serial(port, baudrate=9600,timeout=20)
@@ -65,16 +65,18 @@ class sfa():
         return float(feedback)
 
     ##  Sa (x);   | This command sets the normal sine out amplitude to x (note that if the amplitude controller is engaged this value will be overwritten)
-    def Sa (self,x):
-
-        self.sine_out_amplitude = round(x,6)
+    def Sa (self, volt):
+        """
+        Set normal sine out amplitude voltage.
+        """
+        self.sine_out_amplitude = round(volt,6)
         command = "SLVL "  + str(self.sine_out_amplitude)
         
         self.write(command)
 
-    def Rm(self):
+    def Rm(self) -> float:
         """
-        Read magnitude
+        Read amplitude
         """
 
         rawA = self.write_read("outp? 3")
@@ -91,7 +93,7 @@ class sfa():
     #     return self.sine_out_amplitude
 
     ##  Rp;       | This command returns the current normal phase
-    def Rp (self):
+    def Rp (self) -> float:
         """
         Read phase
 
@@ -135,7 +137,7 @@ class sfa():
 
 if __name__ == '__main__':
     import time
-    s = sfa()
+    s = sfa(PID=0x7523, VID=0x1A86)
 
     time.sleep(2)
     s.Sf(1021.02)
