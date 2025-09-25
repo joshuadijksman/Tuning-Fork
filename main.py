@@ -122,7 +122,8 @@ def calibrateDistance(ctrlNormal: sfa,
                        start_V=10.0, 
                        max_V=110.0, 
                        step_V=1.0,
-                       amp_fraction=0.05
+                       amp_fraction=0.05,
+                       delay = 0.5
                        ):
     """
     
@@ -146,7 +147,7 @@ def calibrateDistance(ctrlNormal: sfa,
     
     for i, voltage in enumerate(voltages):
         z_stage.absolute_voltage(voltage)
-        time.sleep(0.5)
+        time.sleep(delay)
 
         try:
             A = ctrlNormal.Rm()
@@ -178,7 +179,7 @@ def calibrateDistance(ctrlNormal: sfa,
 
     for i, voltage in enumerate(voltagesRetract):
         z_stage.absolute_voltage(voltage)
-        time.sleep(0.5)
+        time.sleep(delay)
         try:
             A = ctrlNormal.Rm()
         except:
