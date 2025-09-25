@@ -28,7 +28,6 @@ def PLL1D(
     The PLL loop reads the phase (Rp) and converts it to radians. Resonance is
     defined as when the phase error is near zero.
     """
-    # 1. Amplitude sweep using measured amplitude (Rm).
     freqs = np.linspace(freqMin, freqMax, points)
     amplitudes = np.zeros_like(freqs)
 
@@ -44,9 +43,27 @@ def PLL1D(
         amplitudes[i] = amp
 
     best_index = np.argmax(amplitudes)
-    fRes = freqs[best_index]
+    fRes: int | float = freqs[best_index]
     print(f"Initial guess from amplitude sweep: {fRes:.3f} Hz")
 
+    ctrl.Sf(fRes)
+    time.sleep(delay)
+
+    try:
+        phaseDeg = [ctrl.Rp() for _ in range(sampleDrops+1)][-1]
+    except:
+        phaseDeg = 180.0
+
+    print(f"Iteration -1: Frequency = {fRes:.6f} Hz, "
+            f"Phase = {phaseDeg:.2f} deg")
+
+    if abs(np.deg2rad(phaseDeg)) < tolerance:
+         return [fRes, [ctrl.Rm() for _ in range(sampleDrops+1)][-1], phaseDeg]
+    
+    fPrev = fRes
+    phasePrev = phaseDeg
+    fRes = fRes + Kp * np.deg2rad(phaseDeg)
+    
     for i in range(iterations):
         ctrl.Sf(fRes)
         time.sleep(delay)
@@ -57,16 +74,24 @@ def PLL1D(
             phaseDeg = 180.0
 
         print(f"Iteration {i:3d}: Frequency = {fRes:.6f} Hz, "
-              f"Phase = {phaseDeg:.2f} deg")
+            f"Phase = {phaseDeg:.2f} deg")
 
         if abs(np.deg2rad(phaseDeg)) < tolerance:
-            print(
-                f"PLL converged after {i} iterations with frequency {fRes:.6f} Hz")
-            opt = [fRes, [ctrl.Rm()
-                          for _ in range(sampleDrops+1)][-1], phaseDeg]
-            break
-
+            if phaseDeg * phasePrev < 0:
+                f_interp = fPrev - phasePrev*(fPrev-fRes)/(phasePrev-phaseDeg)
+                print(f"  → Interpolated f_res = {f_interp:.6f} Hz")
+                return [f_interp, [ctrl.Rm() for _ in range(sampleDrops+1)][-1], phaseDeg]
+                
+        # TODO: REVIEW THIS PART, FROM OLD "NEW" CODE. WILL ALWAYS DEFAULT WHEN PHASE IS NEGATIVE, INC -180
+        if phasePrev * phaseDeg < 0:
+            f_interp = fPrev - phasePrev*(fRes-fPrev)/(phaseDeg-phasePrev)
+            print(f"  → Sign change, interpolated f_res = {f_interp:.6f} Hz")
+            return [f_interp, [ctrl.Rm() for _ in range(sampleDrops+1)][-1], phaseDeg]
+        
+        fPrev = fRes
+        phasePrev = phaseDeg
         fRes = fRes + Kp * np.deg2rad(phaseDeg)
+
     else:
         opt = [fRes, [ctrl.Rm() for _ in range(sampleDrops+1)][-1], phaseDeg]
         print("Maximum iterations reached without full convergence in the PLL loop.")
