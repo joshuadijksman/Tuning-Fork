@@ -10,16 +10,17 @@ import time
 from newsfa import sfa  # Ensure sfa.py is in the same directory
 
 
-def PLL1D(ctrl: sfa,
-          freqMin: int | float,
-          freqMax: int | float,
-          points: int = 20,
-          tolerance: int | float =1e-3,
-          iterations: int = 20,
-          Kp = 15/(4 * np.pi),
-          delay: float = 0.75,
-          sampleDrops: int = 3
-          ) -> list[int | float]:
+def PLL1D(
+    ctrl: sfa,
+    freqMin: int | float,
+    freqMax: int | float,
+    points: int = 20,
+    tolerance: int | float = 1e-3,
+    iterations: int = 20,
+    Kp=15/(4 * np.pi),
+    delay: float = 0.75,
+    sampleDrops: int = 3
+    ) -> list[int | float]:
     """
     Find the resonance frequency using a PLL approach via the sfa controller.
 
@@ -59,8 +60,10 @@ def PLL1D(ctrl: sfa,
               f"Phase = {phaseDeg:.2f} deg")
 
         if abs(np.deg2rad(phaseDeg)) < tolerance:
-            print(f"PLL converged after {i} iterations with frequency {fRes:.6f} Hz")
-            opt = [fRes, [ctrl.Rm() for _ in range(sampleDrops+1)][-1], phaseDeg]
+            print(
+                f"PLL converged after {i} iterations with frequency {fRes:.6f} Hz")
+            opt = [fRes, [ctrl.Rm()
+                          for _ in range(sampleDrops+1)][-1], phaseDeg]
             break
 
         fRes = fRes + Kp * np.deg2rad(phaseDeg)
@@ -106,47 +109,54 @@ def PLL2D(
             time.sleep(delay)
 
             try:
-                amps[i,j] = np.sqrt(([ctrlNormal.Rm() for _ in range(sampleDrops+1)][-1]**2)/2 + \
-                                    ([ctrlNormal.Rm() for _ in range(sampleDrops+1)][-1]**2)/2)
+                amps[i, j] = np.sqrt(([ctrlNormal.Rm() for _ in range(sampleDrops+1)][-1]**2)/2 +
+                                     ([ctrlNormal.Rm() for _ in range(sampleDrops+1)][-1]**2)/2)
             except:
-                amps[i,j] = np.nan
+                amps[i, j] = np.nan
 
     indAmp = np.unravel_index(np.argmax(amps), amps.shape)
     fResNormal: int | float = freqsNormal[indAmp[0]]
     fResShear: int | float = freqsShear[indAmp[1]]
-    print(f"Initial guess from amplitude sweep: \n Normal: {fResNormal:.3f} Hz\nShear: {fResShear:.3f} Hz")
+    print(
+        f"Initial guess from amplitude sweep: \n Normal: {fResNormal:.3f} Hz\nShear: {fResShear:.3f} Hz")
 
     # Normal loop
     for i in range(iterations):
         ctrlNormal.Sf(fResNormal)
-        
+
         # Shear loop
         for j in range(iterations):
             ctrlShear.Sf(fResShear)
             time.sleep(delay)
 
             try:
-                phaseDegShear = [ctrlShear.Rp() for _ in range(sampleDrops+1)][-1]
+                phaseDegShear = [ctrlShear.Rp()
+                                 for _ in range(sampleDrops+1)][-1]
             except:
                 phaseDegShear = 180.0
 
             print(f"Iteration {j:3d}: Frequency = {fResShear:.6f} Hz, "
-                f"Phase = {phaseDegShear:.2f} deg")
+                  f"Phase = {phaseDegShear:.2f} deg")
 
             if abs(np.deg2rad(phaseDegShear)) < tolerance:
-                print(f"(Shear) PLL converged after {j} iterations with frequency {fResShear:.6f} Hz")
-                optShear = [fResShear, [ctrlShear.Rm() for _ in range(sampleDrops+1)][-1], phaseDegShear]
+                print(
+                    f"(Shear) PLL converged after {j} iterations with frequency {fResShear:.6f} Hz")
+                optShear = [fResShear, [ctrlShear.Rm()
+                                        for _ in range(sampleDrops+1)][-1], phaseDegShear]
                 break
 
             fResShear = fResShear + Kp * np.deg2rad(phaseDegShear)
 
         else:
-            optShear = [fResShear, [ctrlShear.Rm() for _ in range(sampleDrops+1)][-1], phaseDegShear]
-            print("(Shear) Maximum iterations reached without full convergence in the PLL loop.")
+            optShear = [fResShear, [ctrlShear.Rm()
+                                    for _ in range(sampleDrops+1)][-1], phaseDegShear]
+            print(
+                "(Shear) Maximum iterations reached without full convergence in the PLL loop.")
         # End shear loop
 
         try:
-            phaseDegNormal = [ctrlNormal.Rp() for _ in range(sampleDrops+1)][-1]
+            phaseDegNormal = [ctrlNormal.Rp()
+                              for _ in range(sampleDrops+1)][-1]
         except:
             phaseDegNormal = 180.0
 
@@ -154,17 +164,21 @@ def PLL2D(
               f"Phase = {phaseDegNormal:.2f} deg")
 
         if abs(np.deg2rad(phaseDegNormal)) < tolerance:
-            print(f"(Normal) PLL converged after {i} iterations with frequency {fResNormal:.6f} Hz")
-            optNormal = [fResNormal, [ctrlNormal.Rm() for _ in range(sampleDrops+1)][-1], phaseDegNormal]
+            print(
+                f"(Normal) PLL converged after {i} iterations with frequency {fResNormal:.6f} Hz")
+            optNormal = [fResNormal, [ctrlNormal.Rm()
+                                      for _ in range(sampleDrops+1)][-1], phaseDegNormal]
             break
 
         fResNormal = fResNormal + Kp * np.deg2rad(phaseDegNormal)
     else:
-        optNormal = [fResNormal, [ctrlNormal.Rm() for _ in range(sampleDrops+1)][-1], phaseDegNormal]
-        print("(Normal) Maximum iterations reached without full convergence in the PLL loop.")
-
+        optNormal = [fResNormal, [ctrlNormal.Rm()
+                                  for _ in range(sampleDrops+1)][-1], phaseDegNormal]
+        print(
+            "(Normal) Maximum iterations reached without full convergence in the PLL loop.")
 
     return [optNormal, optShear]
+
 
 def PLL2x1D(
     ctrlNormal: sfa,
@@ -181,6 +195,8 @@ def PLL2x1D(
     """
     Sweeps through normal frequencies and the shear frequencies sequentially.\n
     Starts 2 seperate 1D sweeps, instead of the full 2D sweep. O(n) time complexity.
+
+    (This function is twice PLL1D in disguise)
 
     returns: [[fNormal, normalAmp, normalPha], [fShear, shearAmp, shearPha]]
     """
