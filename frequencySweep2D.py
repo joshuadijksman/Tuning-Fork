@@ -87,11 +87,11 @@ def main(
             ctrlShear.Sf(fShear)
             time.sleep(delay)
             try:
-                listNormal[j] = [ctrlNormal.Rp() for _ in range(sampleDrops+1)][-1]
+                listNormal[j] = [ctrlNormal.Rm() for _ in range(sampleDrops+1)][-1]
             except:
                 listNormal[j] = np.nan
             try:
-                listShear[j] = [ctrlShear.Rp() for _ in range(sampleDrops+1)][-1]
+                listShear[j] = [ctrlShear.Rm() for _ in range(sampleDrops+1)][-1]
             except:
                 listShear[j] = np.nan
         normalAmplitudes[i] = listNormal

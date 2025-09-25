@@ -15,7 +15,6 @@
 ##  SCAl (X); | This command sets the linear term for the normal amplitude controller
 ##  SCAp (X); | This command sets the linear term for the normal amplitude controller (preset 1 is most conservative and preset 5 is most agressive)
 
-import time
 import serial
 
 from serial.tools import list_ports
@@ -74,8 +73,11 @@ class sfa():
         self.write(command)
 
     def Rm(self):
-        
-        rawA = self.write_read("outp? 4")
+        """
+        Read magnitude
+        """
+
+        rawA = self.write_read("outp? 3")
       #  try:
         amp = round(float(rawA),6)
       #  except ValueError:
@@ -83,15 +85,20 @@ class sfa():
         return amp
         
 
-    ##  Ra;       | This command returns the current normal sine out amplitude
-    def Ra (self):
+    # ##  Ra;       | This command returns the current normal sine out amplitude
+    # def Ra (self):
         
-        return self.sine_out_amplitude
+    #     return self.sine_out_amplitude
 
     ##  Rp;       | This command returns the current normal phase
     def Rp (self):
-        
-        command = "OUTP? 3"
+        """
+        Read phase
+
+        Returns current normal phase
+        """
+
+        command = "OUTP? 4"
         feedback = self.write_read(command)
         return float(feedback)
 
@@ -127,7 +134,7 @@ class sfa():
 ##
 
 if __name__ == '__main__':
-
+    import time
     s = sfa()
 
     time.sleep(2)
