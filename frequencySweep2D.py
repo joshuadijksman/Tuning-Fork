@@ -48,11 +48,17 @@ def heatmapPlot(fName: str, data: list[list[int|float]] | np.ndarray, xTickLabel
     fig.savefig(fName, bbox_inches="tight")
 
 
-def fileAvailable(folder, name, ext = ".csv", n=1) -> str:
-    if os.path.exists(os.path.join(folder, name + f"_{n}" + ext)):
-        return fileAvailable(folder, name, ext, n+1)
+def fileAvailable(folder, name, n=0) -> str:
+    if n == 0:
+        if os.path.exists(os.path.join(folder, name)):
+            return fileAvailable(folder, name, n=n+1)
+        else:
+            return os.path.join(folder, name)
     else:
-        return os.path.join(folder, name+f"_{n}" + ext)
+        if os.path.exists(os.path.join(folder, name + f"_{n}")):
+            return fileAvailable(folder, name, n=n+1)
+        else:
+            return os.path.join(folder, name+f"_{n}")
 
 
 def main(
