@@ -123,10 +123,10 @@ def main(
     np.savetxt(fileName+"_NormalPha.csv", normalPhases, delimiter=",")
     np.savetxt(fileName+"_ShearPha.csv", shearPhases, delimiter=",")
 
-    relativeAbsoluteAmplitudes = np.sqrt(((normalAmplitudes/normalAmplitudes.max())**2+(shearAmplitudes/shearAmplitudes.max())**2)/2)
+    normalisedAbsoluteAmplitudes = np.sqrt(((normalAmplitudes/normalAmplitudes.max())**2+(shearAmplitudes/shearAmplitudes.max())**2)/2)
     heatmapPlot(fileName+"_Normal.png", normalAmplitudes, freqsShear, freqsNormal, title="Normal Amplitudes")
     heatmapPlot(fileName+"_Shear.png", shearAmplitudes, freqsShear, freqsNormal, title="Shear Amplitudes")
-    heatmapPlot(fileName+"_Relative.png", relativeAbsoluteAmplitudes, freqsShear, freqsNormal, title="Relative Amplitudes")
+    heatmapPlot(fileName+"_Normalised.png", normalisedAbsoluteAmplitudes, freqsShear, freqsNormal, title="Normalised Amplitudes")
 
     ctrlNormal.ser.close()
     ctrlShear.ser.close()
