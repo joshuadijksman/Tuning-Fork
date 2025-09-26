@@ -61,6 +61,7 @@ def main(
     freqsShear,
     delay: float = 2.,
     sampleDrops: int = 3,
+    sysDelay: float = 0.777
     ):
 
     lenNormal = len(freqsNormal)
@@ -72,61 +73,70 @@ def main(
     ctrlShear.Sa(0.02)
     ctrlNormal.Sa(0.006)
 
-    normalAmplitudes = np.zeros((lenNormal,lenShear))
-    normalPhases = np.zeros((lenNormal, lenShear))
-    shearAmplitudes = np.zeros((lenNormal,lenShear))  
-    shearPhases = np.zeros((lenNormal, lenShear))  
+    normAmpFile = open(file=fileName+"_NormalAmp.csv")
+    sheaAmpFile = open(file=fileName+"_ShearAmp.csv")
+    normPhaFile = open(file=fileName+"_NormalPha.csv")
+    sheaPhaFile = open(file=fileName+"_ShearPha.csv")
 
-    print(f"\nExpected loop time: {timedelta(seconds=lenNormal*lenShear*delay)}\n")
+    print(f"\nExpected loop time: {timedelta(seconds=lenNormal*lenShear*(delay+sysDelay))}\n")
     tPre = time.time()
-
     for i, fNormal in enumerate(freqsNormal):
         print("Normal: "+str(fNormal)+" (Hz)")
-        listNormal = np.zeros(lenShear)
-        listNormalPhase = np.zeros(lenShear)
-        listShear = np.zeros(lenShear)
-        listShearPhase = np.zeros(lenShear)
+        listNormalAmp = np.zeros(lenShear)
+        listNormalPha = np.zeros(lenShear)
+        listShearAmp = np.zeros(lenShear)
+        listShearPha = np.zeros(lenShear)
 
         ctrlNormal.Sf(fNormal)
         for j, fShear in enumerate(freqsShear):
             ctrlShear.Sf(fShear)
             time.sleep(delay)
             try:
-                listNormal[j] = [ctrlNormal.Rm() for _ in range(sampleDrops+1)][-1]
+                listNormalAmp[j] = [ctrlNormal.Rm() for _ in range(sampleDrops+1)][-1]
             except:
-                listNormal[j] = np.nan
+                listNormalAmp[j] = np.nan
 
             try:
-                listNormalPhase[j] = [ctrlNormal.Rp() for _ in range(sampleDrops+1)][-1]
+                listNormalPha[j] = [ctrlNormal.Rp() for _ in range(sampleDrops+1)][-1]
             except:
-                listNormalPhase[j] = np.nan
+                listNormalPha[j] = np.nan
 
             try:
-                listShear[j] = [ctrlShear.Rm() for _ in range(sampleDrops+1)][-1]
+                listShearAmp[j] = [ctrlShear.Rm() for _ in range(sampleDrops+1)][-1]
             except:
-                listShear[j] = np.nan
+                listShearAmp[j] = np.nan
 
             try:
-                listShearPhase[j] = [ctrlShear.Rp() for _ in range(sampleDrops+1)][-1]
+                listShearPha[j] = [ctrlShear.Rp() for _ in range(sampleDrops+1)][-1]
             except:
-                listShearPhase[j] = np.nan
+                listShearPha[j] = np.nan
 
-        normalAmplitudes[i] = listNormal
-        normalPhases[i] = listNormalPhase
-        shearAmplitudes[i] = listShear
-        shearPhases[i] = listShearPhase
+        normAmpFile.write(str(listNormalAmp)[1:-2])
+        sheaAmpFile.write(str(listNormalPha)[1:-2])
+        normPhaFile.write(str(listShearAmp)[1:-2])
+        sheaPhaFile.write(str(listShearPha)[1:-2])
 
     print(f"\nFinished after: {timedelta(seconds=time.time()-tPre)}\n")
-    
-    np.savetxt(fileName+"_NormalAmp.csv", normalAmplitudes, delimiter=",")
-    np.savetxt(fileName+"_ShearAmp.csv", shearAmplitudes, delimiter=",")
-    np.savetxt(fileName+"_NormalPha.csv", normalPhases, delimiter=",")
-    np.savetxt(fileName+"_ShearPha.csv", shearPhases, delimiter=",")
+
+    normAmpFile.close()
+    sheaAmpFile.close()
+    normPhaFile.close()
+    sheaPhaFile.close()
+
+    normalAmplitudes= np.genfromtxt(fileName+"_NormalAmp.csv", delimiter=",")
+    normalPhases    = np.genfromtxt(fileName+"_ShearAmp.csv" , delimiter=",")
+    shearAmplitudes = np.genfromtxt(fileName+"_NormalPha.csv", delimiter=",")
+    shearPhases     = np.genfromtxt(fileName+"_ShearPha.csv" , delimiter=",")
 
     normalisedAbsoluteAmplitudes = np.sqrt(((normalAmplitudes/normalAmplitudes.max())**2+(shearAmplitudes/shearAmplitudes.max())**2)/2)
     heatmapPlot(fileName+"_Normal.png", normalAmplitudes, freqsShear, freqsNormal, title="Normal Amplitudes")
     heatmapPlot(fileName+"_Shear.png", shearAmplitudes, freqsShear, freqsNormal, title="Shear Amplitudes")
     heatmapPlot(fileName+"_Normalised.png", normalisedAbsoluteAmplitudes, freqsShear, freqsNormal, title="Normalised Amplitudes")
+    
+    normalisedAbsolutePhases= np.sqrt(((normalPhases/normalPhases.max())**2+(shearPhases/shearPhases.max())**2)/2)
+    heatmapPlot(fileName+"_NormalPha.png",     normalPhases, freqsShear, freqsNormal, title="Normal Phases")
+    heatmapPlot(fileName+"_ShearPha.png",      shearPhases, freqsShear, freqsNormal, title="Shear Phases")
+    heatmapPlot(fileName+"_NormalisedPha.png", normalisedAbsolutePhases, freqsShear, freqsNormal, title="Normalised Phases")
 
     ctrlNormal.ser.close()
     ctrlShear.ser.close()
@@ -140,8 +150,8 @@ if __name__ == "__main__":
     freqShearStart=452.6
     freqShearEnd=457.6
 
-    freqsNormal = np.linspace(freqNormalStart, freqNormalEnd, int((freqNormalEnd-freqNormalStart+1)/resolution), endpoint=True)
-    freqsShear = np.linspace(freqShearStart, freqShearEnd, int((freqShearEnd-freqShearStart+1)/resolution), endpoint=True)
+    freqsNormal = np.linspace(freqNormalStart, freqNormalEnd, int((freqNormalEnd-freqNormalStart)/resolution+1), endpoint=True)
+    freqsShear = np.linspace(freqShearStart, freqShearEnd, int((freqShearEnd-freqShearStart)/resolution+1), endpoint=True)
 
     fileName = fileAvailable(
         folder = os.path.abspath("./Data"),
@@ -152,6 +162,6 @@ if __name__ == "__main__":
         fileName,
         freqsNormal=freqsNormal,
         freqsShear=freqsShear,
-        delay = 1,
+        delay = 0.5,
         sampleDrops = 5
     )
