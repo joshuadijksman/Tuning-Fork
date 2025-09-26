@@ -88,39 +88,43 @@ def main(
     tPre = time.time()
     for i, fNormal in enumerate(freqsNormal):
         print("Normal: "+str(fNormal)+" (Hz)")
-        listNormalAmp = np.zeros(lenShear)
-        listNormalPha = np.zeros(lenShear)
-        listShearAmp = np.zeros(lenShear)
-        listShearPha = np.zeros(lenShear)
+        listNormalAmp = lenShear*[0.]
+        listNormalPha = lenShear*[0.]
+        listShearAmp = lenShear*[0.]
+        listShearPha =lenShear*[0.]
 
         ctrlNormal.Sf(fNormal)
         for j, fShear in enumerate(freqsShear):
             ctrlShear.Sf(fShear)
             time.sleep(delay)
             try:
-                normAmpFile.write(str([ctrlNormal.Rm() for _ in range(sampleDrops+1)][-1])+",")
+                listNormalAmp[j] = [ctrlNormal.Rm() for _ in range(sampleDrops+1)][-1]
             except:
-                normAmpFile.write(str(np.nan)+",")
+                listNormalAmp[j] = np.nan
 
             try:
-                normPhaFile.write(str([ctrlNormal.Rp() for _ in range(sampleDrops+1)][-1])+",")
+                listNormalPha[j] = [ctrlNormal.Rp() for _ in range(sampleDrops+1)][-1]
             except:
-                normPhaFile.write(str(np.nan)+",")
+                listNormalPha[j] = np.nan
 
             try:
-                sheaAmpFile.write(str([ctrlShear.Rm() for _ in range(sampleDrops+1)][-1])+",")
+                listShearAmp[j] = [ctrlShear.Rm() for _ in range(sampleDrops+1)][-1]
             except:
-                sheaAmpFile.write(str(np.nan)+",")
+                listShearAmp[j] = np.nan
 
             try:
-                sheaPhaFile.write(str([ctrlShear.Rp() for _ in range(sampleDrops+1)][-1])+",")
+                listShearPha[j] = [ctrlShear.Rp() for _ in range(sampleDrops+1)][-1]
             except:
-                sheaPhaFile.write(str(np.nan)+",")
+                listShearPha[j] = np.nan
 
-        normAmpFile.write("\n")
-        sheaAmpFile.write("\n")
-        normPhaFile.write("\n")
-        sheaPhaFile.write("\n")
+        normAmpFile.write(str(listNormalAmp)[1:-1]+"\n")
+        sheaAmpFile.write(str(listShearAmp)[1:-1]+"\n")
+        normPhaFile.write(str(listNormalPha)[1:-1]+"\n")
+        sheaPhaFile.write(str(listShearPha)[1:-1]+"\n")
+        normAmpFile.flush()
+        sheaAmpFile.flush()
+        normPhaFile.flush()
+        sheaPhaFile.flush()
 
     print(f"\nFinished after: {timedelta(seconds=time.time()-tPre)}\n")
 
