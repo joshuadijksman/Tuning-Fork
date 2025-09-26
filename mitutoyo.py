@@ -7,16 +7,16 @@ def port_find_unique_dev_by_pidvid(pid: int, vid: int):
     return found_devices[0] if len(found_devices) == 1 else None
 
 class mitutoyo(object):
-    def __init__(self, port=''):
+    def __init__(self, port='') -> None:
         if port == "":
             port = str(port_find_unique_dev_by_pidvid(0x4001, 0x0fe7)).split(" ")[0]
             print("Using Mitutoyo port:", port)
         self.ser = serial.Serial(port=port, baudrate=115200)
 
-    def answer(self):
+    def answer(self) -> str:
         f = self.ser.read().decode()
-        a = ""
-        c = ""
+        a: str = ""
+        c: str = ""
 
         while c != '\r':
             c = self.ser.read().decode()
@@ -29,8 +29,8 @@ class mitutoyo(object):
 
         return a
 
-    def measurement(self):
-        m = 0
+    def measurement(self) -> float:
+        m: float = 0.
         cmd = "1\r".encode()
         self.ser.write(cmd)
         a = self.answer().split('\r')[0]
@@ -39,7 +39,7 @@ class mitutoyo(object):
             m = float(a.replace('1A', ""))
         return m
 
-    def info(self):
+    def info(self) -> str:
         cmd = "V\r".encode()
         self.ser.write(cmd)
         a = self.answer()
