@@ -64,6 +64,8 @@ def main(
     sysDelay: float = 0.777
     ):
 
+    os.makedirs(fileName)
+
     lenNormal = len(freqsNormal)
     lenShear = len(freqsShear)
 
@@ -73,15 +75,15 @@ def main(
     ctrlShear.Sa(0.02)
     ctrlNormal.Sa(0.006)
 
-    open(file=fileName+"_NormalAmp.csv", mode="x").close()
-    open(file=fileName+"_ShearAmp.csv" , mode="x").close()
-    open(file=fileName+"_NormalPha.csv", mode="x").close()
-    open(file=fileName+"_ShearPha.csv" , mode="x").close()
+    open(file=os.path.join(fileName+"NormalAmp.csv"), mode="x").close()
+    open(file=os.path.join(fileName+"ShearAmp.csv") , mode="x").close()
+    open(file=os.path.join(fileName+"NormalPha.csv"), mode="x").close()
+    open(file=os.path.join(fileName+"ShearPha.csv") , mode="x").close()
 
-    normAmpFile = open(file=fileName+"_NormalAmp.csv", mode="a")
-    sheaAmpFile = open(file=fileName+"_ShearAmp.csv" , mode="a")
-    normPhaFile = open(file=fileName+"_NormalPha.csv", mode="a")
-    sheaPhaFile = open(file=fileName+"_ShearPha.csv" , mode="a")
+    normAmpFile = open(file=os.path.join(fileName+"NormalAmp.csv"), mode="a")
+    sheaAmpFile = open(file=os.path.join(fileName+"ShearAmp.csv"), mode="a")
+    normPhaFile = open(file=os.path.join(fileName+"NormalPha.csv"), mode="a")
+    sheaPhaFile = open(file=os.path.join(fileName+"ShearPha.csv"), mode="a")
     
 
     print(f"\nExpected loop time: {timedelta(seconds=lenNormal*lenShear*(delay+sysDelay))}\n")
@@ -133,20 +135,20 @@ def main(
     normPhaFile.close()
     sheaPhaFile.close()
 
-    normalAmplitudes= np.genfromtxt(fileName+"_NormalAmp.csv", delimiter=",")
-    normalPhases    = np.genfromtxt(fileName+"_ShearAmp.csv" , delimiter=",")
-    shearAmplitudes = np.genfromtxt(fileName+"_NormalPha.csv", delimiter=",")
-    shearPhases     = np.genfromtxt(fileName+"_ShearPha.csv" , delimiter=",")
+    normalAmplitudes= np.genfromtxt(os.path.join(fileName+"NormalAmp.csv"), delimiter=",")
+    normalPhases    = np.genfromtxt(os.path.join(fileName+"ShearAmp.csv") , delimiter=",")
+    shearAmplitudes = np.genfromtxt(os.path.join(fileName+"NormalPha.csv"), delimiter=",")
+    shearPhases     = np.genfromtxt(os.path.join(fileName+"ShearPha.csv") , delimiter=",")
 
     normalisedAbsoluteAmplitudes = np.sqrt(((normalAmplitudes/normalAmplitudes.max())**2+(shearAmplitudes/shearAmplitudes.max())**2)/2)
-    heatmapPlot(fileName+"_Normal.png", normalAmplitudes, freqsShear, freqsNormal, title="Normal Amplitudes")
-    heatmapPlot(fileName+"_Shear.png", shearAmplitudes, freqsShear, freqsNormal, title="Shear Amplitudes")
-    heatmapPlot(fileName+"_Normalised.png", normalisedAbsoluteAmplitudes, freqsShear, freqsNormal, title="Normalised Amplitudes")
+    heatmapPlot(os.path.join(fileName+"NormalAmp.png"), normalAmplitudes, freqsShear, freqsNormal, title="Normal Amplitudes")
+    heatmapPlot(os.path.join(fileName+"ShearAmp.png") , shearAmplitudes, freqsShear, freqsNormal, title="Shear Amplitudes")
+    heatmapPlot(os.path.join(fileName+"NormalisedAmp.png"), normalisedAbsoluteAmplitudes, freqsShear, freqsNormal, title="Normalised Amplitudes")
     
     normalisedAbsolutePhases= np.sqrt(((normalPhases/normalPhases.max())**2+(shearPhases/shearPhases.max())**2)/2)
-    heatmapPlot(fileName+"_NormalPha.png",     normalPhases, freqsShear, freqsNormal, title="Normal Phases")
-    heatmapPlot(fileName+"_ShearPha.png",      shearPhases, freqsShear, freqsNormal, title="Shear Phases")
-    heatmapPlot(fileName+"_NormalisedPha.png", normalisedAbsolutePhases, freqsShear, freqsNormal, title="Normalised Phases")
+    heatmapPlot(os.path.join(fileName+"NormalPha.png"),     normalPhases, freqsShear, freqsNormal, title="Normal Phases")
+    heatmapPlot(os.path.join(fileName+"ShearPha.png") ,      shearPhases, freqsShear, freqsNormal, title="Shear Phases")
+    heatmapPlot(os.path.join(fileName+"NormalisedPha.png"), normalisedAbsolutePhases, freqsShear, freqsNormal, title="Normalised Phases")
 
     ctrlNormal.ser.close()
     ctrlShear.ser.close()
