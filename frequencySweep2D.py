@@ -82,8 +82,8 @@ def main(
 
     for i, fNormal in enumerate(freqsNormal):
         print("Normal: "+str(fNormal)+" (Hz)")
-        listNormal = np.zeros(lenNormal)
-        listNormalPhase = np.zeros(lenNormal)
+        listNormal = np.zeros(lenShear)
+        listNormalPhase = np.zeros(lenShear)
         listShear = np.zeros(lenShear)
         listShearPhase = np.zeros(lenShear)
 
