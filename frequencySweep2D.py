@@ -73,10 +73,16 @@ def main(
     ctrlShear.Sa(0.02)
     ctrlNormal.Sa(0.006)
 
-    normAmpFile = open(file=fileName+"_NormalAmp.csv")
-    sheaAmpFile = open(file=fileName+"_ShearAmp.csv")
-    normPhaFile = open(file=fileName+"_NormalPha.csv")
-    sheaPhaFile = open(file=fileName+"_ShearPha.csv")
+    open(file=fileName+"_NormalAmp.csv", mode="x").close()
+    open(file=fileName+"_ShearAmp.csv" , mode="x").close()
+    open(file=fileName+"_NormalPha.csv", mode="x").close()
+    open(file=fileName+"_ShearPha.csv" , mode="x").close()
+
+    normAmpFile = open(file=fileName+"_NormalAmp.csv", mode="a")
+    sheaAmpFile = open(file=fileName+"_ShearAmp.csv" , mode="a")
+    normPhaFile = open(file=fileName+"_NormalPha.csv", mode="a")
+    sheaPhaFile = open(file=fileName+"_ShearPha.csv" , mode="a")
+    
 
     print(f"\nExpected loop time: {timedelta(seconds=lenNormal*lenShear*(delay+sysDelay))}\n")
     tPre = time.time()
@@ -92,29 +98,29 @@ def main(
             ctrlShear.Sf(fShear)
             time.sleep(delay)
             try:
-                listNormalAmp[j] = [ctrlNormal.Rm() for _ in range(sampleDrops+1)][-1]
+                normAmpFile.write(str([ctrlNormal.Rm() for _ in range(sampleDrops+1)][-1])+",")
             except:
-                listNormalAmp[j] = np.nan
+                normAmpFile.write(str(np.nan)+",")
 
             try:
-                listNormalPha[j] = [ctrlNormal.Rp() for _ in range(sampleDrops+1)][-1]
+                normPhaFile.write(str([ctrlNormal.Rp() for _ in range(sampleDrops+1)][-1])+",")
             except:
-                listNormalPha[j] = np.nan
+                normPhaFile.write(str(np.nan)+",")
 
             try:
-                listShearAmp[j] = [ctrlShear.Rm() for _ in range(sampleDrops+1)][-1]
+                sheaAmpFile.write(str([ctrlShear.Rm() for _ in range(sampleDrops+1)][-1])+",")
             except:
-                listShearAmp[j] = np.nan
+                sheaAmpFile.write(str(np.nan)+",")
 
             try:
-                listShearPha[j] = [ctrlShear.Rp() for _ in range(sampleDrops+1)][-1]
+                sheaPhaFile.write(str([ctrlShear.Rp() for _ in range(sampleDrops+1)][-1])+",")
             except:
-                listShearPha[j] = np.nan
+                sheaPhaFile.write(str(np.nan)+",")
 
-        normAmpFile.write(str(listNormalAmp)[1:-2])
-        sheaAmpFile.write(str(listNormalPha)[1:-2])
-        normPhaFile.write(str(listShearAmp)[1:-2])
-        sheaPhaFile.write(str(listShearPha)[1:-2])
+        normAmpFile.write("\n")
+        sheaAmpFile.write("\n")
+        normPhaFile.write("\n")
+        sheaPhaFile.write("\n")
 
     print(f"\nFinished after: {timedelta(seconds=time.time()-tPre)}\n")
 
