@@ -61,22 +61,21 @@ def fileAvailable(folder, name, n=0) -> str:
             return os.path.join(folder, name+f"_{n}")
 
 
-def main(
+def frequencySweep2D(
     fileName: str,
+    ctrlNormal: sfa.sfa,
+    ctrlShear: sfa.sfa,
     freqsNormal,
     freqsShear,
     delay: float = 2.,
     sampleDrops: int = 3,
     sysDelay: float = 0.777
-    ):
+    ) -> None:
 
     os.makedirs(fileName)
 
     lenNormal = len(freqsNormal)
     lenShear = len(freqsShear)
-
-    ctrlShear = sfa.sfa(PID=0x7523, VID=0x1A86)
-    ctrlNormal = sfa.sfa(PID=0x6001, VID=0x0403)
 
     ctrlShear.Sa(0.02)
     ctrlNormal.Sa(0.006)
@@ -171,13 +170,18 @@ if __name__ == "__main__":
     freqsNormal = np.linspace(freqNormalStart, freqNormalEnd, int((freqNormalEnd-freqNormalStart)/resolution+1), endpoint=True)
     freqsShear = np.linspace(freqShearStart, freqShearEnd, int((freqShearEnd-freqShearStart)/resolution+1), endpoint=True)
 
+    ctrlNormal: sfa.sfa = sfa.sfa(SN="A9JSTXTQA")
+    ctrlShear: sfa.sfa = sfa.sfa(SN="A9TQAG5OA")
+
     fileName = fileAvailable(
         folder = os.path.abspath("./Data"),
         name = time.strftime("%Y-%m-%d_%H-%M")
     ).split(".")[0]
 
-    main(
+    frequencySweep2D(
         fileName,
+        ctrlNormal=ctrlNormal,
+        ctrlShear=ctrlShear,
         freqsNormal=freqsNormal,
         freqsShear=freqsShear,
         delay = 0.5,

@@ -18,28 +18,34 @@
 import serial
 
 from serial.tools import list_ports
+from serial.tools.list_ports_common import ListPortInfo
 
-def find_unique_dev_by_pidvid(pid: int, vid: int):
-     found_devices = list(filter(lambda p: p.pid == pid and p.vid == vid, list_ports.comports()))
+def find_unique_dev_by_pidvid(vid: int, pid: int) -> ListPortInfo | None:
+     """Find port by Vendor ID and Product ID"""
+     found_devices = list(filter(lambda p:p.vid == vid and p.pid == pid, list_ports.comports())) #  p.pid == pid and p.vid == vid and 
+     return found_devices[0] if len(found_devices) == 1 else None
+
+
+def find_unique_dev_by_serial_number(sn: str) -> ListPortInfo | None:
+     """Find port by Serial Number"""
+     found_devices = list(filter(lambda p:p.serial_number == sn, list_ports.comports())) #  p.pid == pid and p.vid == vid and 
      return found_devices[0] if len(found_devices) == 1 else None
 
 
 class sfa():
 
-    def __init__(self, PID, VID):
-        
-        port = str(find_unique_dev_by_pidvid(pid=PID, vid=VID)).split(" ")[0]
+    def __init__(self, SN: str) -> None:
+        port = str(find_unique_dev_by_serial_number(sn=SN)).split(" ")[0]
         self.ser = serial.Serial(port, baudrate=9600,timeout=20)
-        self.Sa(0.006)
         
-    def write(self,cmd):
 
+    def write(self, cmd: str) -> None:
         senddata = cmd  + '\n\r'
         self.ser.write(senddata.encode())
         return
 
 
-    def write_read(self,cmd):
+    def write_read(self, cmd: str) -> str:
         self.write(cmd)
 
         kar = self.ser.read().decode()
@@ -52,20 +58,20 @@ class sfa():
 
 
     ##  Sf (x);   | This command sets the normal frequency to x (note that if the frequency controller is engaged this value will be overwritten)
-    def Sf (self,x):
+    def Sf (self, x: float) -> None:
 
         command = "FREQ " + str(round(x,6))
         self.write(command)
 
     ##  Rf;       | This command returns the current normal frequency
-    def Rf(self):
+    def Rf(self) -> float:
 
         command = "FREQ?"
         feedback = self.write_read(command)
         return float(feedback)
 
     ##  Sa (x);   | This command sets the normal sine out amplitude to x (note that if the amplitude controller is engaged this value will be overwritten)
-    def Sa (self, volt):
+    def Sa (self, volt: float) -> None:
         """
         Set normal sine out amplitude voltage.
         """
@@ -88,9 +94,8 @@ class sfa():
         
 
     # ##  Ra;       | This command returns the current normal sine out amplitude
-    # def Ra (self):
-        
-    #     return self.sine_out_amplitude
+    def Ra (self) -> float:
+        return self.sine_out_amplitude
 
     ##  Rp;       | This command returns the current normal phase
     def Rp (self) -> float:
@@ -137,7 +142,7 @@ class sfa():
 
 if __name__ == '__main__':
     import time
-    s = sfa(PID=0x7523, VID=0x1A86)
+    s = sfa(SN="")
 
     time.sleep(2)
     s.Sf(1021.02)
