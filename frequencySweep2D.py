@@ -142,8 +142,8 @@ def main(
     sheaPhaFile.close()
 
     normalAmplitudes= np.genfromtxt(os.path.join(fileName,"NormalAmp.csv"), delimiter=",")
-    normalPhases    = np.genfromtxt(os.path.join(fileName,"ShearAmp.csv") , delimiter=",")
-    shearAmplitudes = np.genfromtxt(os.path.join(fileName,"NormalPha.csv"), delimiter=",")
+    normalPhases    = np.genfromtxt(os.path.join(fileName,"NormalPha.csv") , delimiter=",")
+    shearAmplitudes = np.genfromtxt(os.path.join(fileName,"ShearAmp.csv"), delimiter=",")
     shearPhases     = np.genfromtxt(os.path.join(fileName,"ShearPha.csv") , delimiter=",")
 
     normalisedAbsoluteAmplitudes = np.sqrt(((normalAmplitudes/normalAmplitudes.max())**2+(shearAmplitudes/shearAmplitudes.max())**2)/2)
