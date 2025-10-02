@@ -20,13 +20,16 @@ def PLL1D(
     Kp=15/(4 * np.pi),
     delay: float = 0.75,
     sampleDrops: int = 3
-    ) -> list[int | float]:
+    ) -> list[float]:
     """
     Find the resonance frequency using a PLL approach via the sfa controller.
 
     The amplitude sweep uses the measured amplitude (Rm) to pick an initial guess.
     The PLL loop reads the phase (Rp) and converts it to radians. Resonance is
     defined as when the phase error is near zero.
+
+    :returns: [fRes, ampRes, phaRes]
+    :rtype: list[float]
     """
     freqs = np.linspace(freqMin, freqMax, points)
     amplitudes = np.zeros_like(freqs)
@@ -43,7 +46,7 @@ def PLL1D(
         amplitudes[i] = amp
 
     best_index = np.argmax(amplitudes)
-    fRes: int | float = freqs[best_index]
+    fRes: float = freqs[best_index]
     print(f"Initial guess from amplitude sweep: {fRes:.3f} Hz")
 
     ctrl.Sf(fRes)
@@ -82,7 +85,7 @@ def PLL1D(
                 print(f"  → Interpolated f_res = {f_interp:.6f} Hz")
                 return [f_interp, [ctrl.Rm() for _ in range(sampleDrops+1)][-1], phaseDeg]
                 
-        # TODO: REVIEW THIS PART, FROM OLD "NEW" CODE. WILL ALWAYS DEFAULT WHEN PHASE IS NEGATIVE, INC -180
+        # TODO: REVIEW THIS PART, FROM OLD "NEW" CODE. SUSPICION: WILL ALWAYS DEFAULT WHEN PHASE IS NEGATIVE, INC -180
         if phasePrev * phaseDeg < 0:
             f_interp = fPrev - phasePrev*(fRes-fPrev)/(phaseDeg-phasePrev)
             print(f"  → Sign change, interpolated f_res = {f_interp:.6f} Hz")
@@ -115,11 +118,13 @@ def PLL2D(
     Sweeps through the shear frequencies nested in a sweep of the normal frequencies .\n
     Starts a 2D sweep. At worst O(n^2) time complexity.
 
-    returns: [[fNormal, normalAmp, normalPha], [fShear, shearAmp, shearPha]]
+    :returns: [[fNormal, normalAmp, normalPha], [fShear, shearAmp, shearPha]] 
+    :rtype: list[list[float]]
+
     """
 
-    optNormal = [freqNormalRange[0], 0., 180.]
-    optShear = [freqShearRange[0], 0., 180.]
+    optNormal: list[float] = [freqNormalRange[0], 0., 180.]
+    optShear: list[float] = [freqShearRange[0], 0., 180.]
 
     freqsNormal = np.linspace(*freqNormalRange, num=points[0], endpoint=True)
     freqsShear = np.linspace(*freqShearRange, num=points[1], endpoint=True)
@@ -140,8 +145,8 @@ def PLL2D(
                 amps[i, j] = np.nan
 
     indAmp = np.unravel_index(np.argmax(amps), amps.shape)
-    fResNormal: int | float = freqsNormal[indAmp[0]]
-    fResShear: int | float = freqsShear[indAmp[1]]
+    fResNormal: float = freqsNormal[indAmp[0]]
+    fResShear: float = freqsShear[indAmp[1]]
     print(
         f"Initial guess from amplitude sweep: \n Normal: {fResNormal:.3f} Hz\nShear: {fResShear:.3f} Hz")
 
@@ -223,7 +228,8 @@ def PLL2x1D(
 
     (This function is twice PLL1D in disguise)
 
-    returns: [[fNormal, normalAmp, normalPha], [fShear, shearAmp, shearPha]]
+    :returns: [[fNormal, normalAmp, normalPha], [fShear, shearAmp, shearPha]]
+    :rtype: list[list[float]]
     """
 
     optNormal = PLL1D(
@@ -254,7 +260,7 @@ def PLL2x1D(
 
 if __name__ == "__main__":
     # Create an instance of the sfa class.
-    ctrlNormal = sfa(PID=0x7523, VID=0x1A86)
+    ctrlNormal = sfa(SN="")
 
     # Run the PLL routine to estimate the resonance frequency.
     resonance_freq = PLL1D(ctrlNormal, 789.5, 794.5)
