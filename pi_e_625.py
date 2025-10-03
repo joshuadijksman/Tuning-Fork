@@ -8,11 +8,11 @@ import time
 
 class pi_e_625():
     
-    def __init__(self):
+    def __init__(self, serialnum="121019479"):
 
-        self.pidevice = GCSDevice('E-625')
+        self.pidevice: GCSDevice = GCSDevice('E-625')
         # Serial number to connect to can be read on device!
-        self.pidevice.ConnectUSB("121019479")
+        self.pidevice.ConnectUSB(serialnum)
 
 #        Or use the dialog and you will read "E-816USB SN 121019479" 
 #        self.pidevice.InterfaceSetupDlg(key='sample')
@@ -21,8 +21,6 @@ class pi_e_625():
         self._stop = True
 
         self.target = 'A'
-
-        print("???")
 
     def servoloop(self,closed=False):
         

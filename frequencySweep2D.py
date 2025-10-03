@@ -6,12 +6,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-def heatmapPlot(fName: str, data: list[list[int|float]], xTickLabels: list[int|float|str] | None=None, yTickLabels: list[int|float|str] | None=None, title: str = "Amplitude", xTicks: int = 10, yTicks: int = 10, xLabelRound: int = 4, yLabelRound: int = 4) -> None:
-    fig = plt.figure()
+def heatmapPlot(fName: str, data: list[list[int|float]] | np.ndarray, xTickLabels: list[int|float] = [], yTickLabels: list[int|float] = [], title: str = "", xTicks: int = 10, yTicks: int = 10, xTickLabelRound: int = 4, yTickLabelRound: int = 4, figsize=(9,6)) -> None:
+    fig = plt.figure(None, figsize)
     
     ax = sns.heatmap(data)
 
-    if type(xTickLabels)!=None:
+    if len(xTickLabels)!=0:
+        ax.set_xlabel("Shear Frequency (Hz)")
         if len(xTickLabels)>=xTicks: 
             xStep = int(len(data[0])/xTicks)
             xSpots = list(range(0, len(data[0])+1, xStep))
@@ -22,10 +23,11 @@ def heatmapPlot(fName: str, data: list[list[int|float]], xTickLabels: list[int|f
             else:
                 step = int(len(xTickLabels)/xTicks)
                 for i, _ in enumerate(xSpots):
-                    xSpots[i] = round(xTickLabels[i*step], xLabelRound)
+                    xSpots[i] = round(xTickLabels[i*step], xTickLabelRound)
                 ax.set_xticklabels(xSpots)
         
-    if type(yTickLabels)!=None:
+    if len(yTickLabels)!=0:
+        ax.set_ylabel("Normal Frequency (Hz)")
         if len(yTickLabels)>=yTicks:
             yStep = int(len(data)/yTicks)
             ySpots = list(range(0, len(data)+1, yStep))
@@ -36,76 +38,122 @@ def heatmapPlot(fName: str, data: list[list[int|float]], xTickLabels: list[int|f
             else:
                 step = int(len(yTickLabels)/yTicks)
                 for i, _ in enumerate(ySpots):
-                    ySpots[i] = round(yTickLabels[i*step], yLabelRound)
+                    ySpots[i] = round(yTickLabels[i*step], yTickLabelRound)
                 ax.set_yticklabels(ySpots)
-
-    ax.set_ylabel("Normal Frequency (Hz)")
-    ax.set_xlabel("Shear Frequency (Hz)")
-
-    ax.set_title(title)
+    
+    if title != "":
+        ax.set_title(title)
 
     fig.axes.append(ax)
-    fig.savefig(fName)
+    fig.savefig(fName, bbox_inches="tight")
 
 
-def fileAvailable(folder, name, ext = ".csv", n=1) -> str:
-    if os.path.exists(os.path.join(folder, name + f"_{n}" + ext)):
-        return fileAvailable(folder, name, ext, n+1)
+def fileAvailable(folder, name, n=0) -> str:
+    if n == 0:
+        if os.path.exists(os.path.join(folder, name)):
+            return fileAvailable(folder, name, n=n+1)
+        else:
+            return os.path.join(folder, name)
     else:
-        return os.path.join(folder, name+f"_{n}" + ext)
+        if os.path.exists(os.path.join(folder, name + f"_{n}")):
+            return fileAvailable(folder, name, n=n+1)
+        else:
+            return os.path.join(folder, name+f"_{n}")
 
 
-def main(
+def frequencySweep2D(
     fileName: str,
+    ctrlNormal: sfa.sfa,
+    ctrlShear: sfa.sfa,
     freqsNormal,
     freqsShear,
     delay: float = 2.,
     sampleDrops: int = 3,
-    ):
+    sysDelay: float = 0.777
+    ) -> None:
+
+    os.makedirs(fileName)
 
     lenNormal = len(freqsNormal)
     lenShear = len(freqsShear)
 
-    ctrlShear = sfa.sfa()
-    ctrlNormal = sfa.sfa(PID=0x6001, VID=0x0403)
-
     ctrlShear.Sa(0.02)
     ctrlNormal.Sa(0.006)
 
-    normalAmplitudes = np.zeros((lenNormal,lenShear))
-    shearAmplitudes = np.zeros((lenNormal,lenShear))    
+    open(file=os.path.join(fileName,"NormalAmp.csv"), mode="x").close()
+    open(file=os.path.join(fileName,"ShearAmp.csv") , mode="x").close()
+    open(file=os.path.join(fileName,"NormalPha.csv"), mode="x").close()
+    open(file=os.path.join(fileName,"ShearPha.csv") , mode="x").close()
 
-    print(f"\nExpected loop time: {timedelta(seconds=lenNormal*lenShear*delay)}\n")
+    normAmpFile = open(file=os.path.join(fileName,"NormalAmp.csv"), mode="a")
+    sheaAmpFile = open(file=os.path.join(fileName,"ShearAmp.csv"), mode="a")
+    normPhaFile = open(file=os.path.join(fileName,"NormalPha.csv"), mode="a")
+    sheaPhaFile = open(file=os.path.join(fileName,"ShearPha.csv"), mode="a")
+    
+
+    print(f"\nExpected loop time: {timedelta(seconds=lenNormal*lenShear*(delay+sysDelay))}\n")
     tPre = time.time()
-
     for i, fNormal in enumerate(freqsNormal):
         print("Normal: "+str(fNormal)+" (Hz)")
-        listNormal = np.zeros(lenNormal)
-        listShear = np.zeros(lenShear)
+        listNormalAmp = lenShear*[0.]
+        listNormalPha = lenShear*[0.]
+        listShearAmp = lenShear*[0.]
+        listShearPha =lenShear*[0.]
+
         ctrlNormal.Sf(fNormal)
         for j, fShear in enumerate(freqsShear):
             ctrlShear.Sf(fShear)
             time.sleep(delay)
             try:
-                listNormal[j] = [ctrlNormal.Rp() for _ in range(sampleDrops+1)][-1]
+                listNormalAmp[j] = [ctrlNormal.Rm() for _ in range(sampleDrops+1)][-1]
             except:
-                listNormal[j] = np.nan
-            try:
-                listShear[j] = [ctrlShear.Rp() for _ in range(sampleDrops+1)][-1]
-            except:
-                listShear[j] = np.nan
-        normalAmplitudes[i] = listNormal
-        shearAmplitudes[i] = listShear
-    
-    print(f"\nFinished after: {timedelta(seconds=time.time()-tPre)}\n")
-    
-    np.savetxt(fileName+"_Normal.csv", normalAmplitudes, delimiter=",")
-    np.savetxt(fileName+"_Shear.csv", shearAmplitudes, delimiter=",")
+                listNormalAmp[j] = np.nan
 
-    relativeAbsoluteAmplitudes = np.sqrt(((normalAmplitudes/normalAmplitudes.max())**2+(shearAmplitudes/shearAmplitudes.max())**2)/2)
-    heatmapPlot(fileName+"_Normal.png", normalAmplitudes, freqsShear, freqsNormal, title="Normal Amplitudes")
-    heatmapPlot(fileName+"_Shear.png", shearAmplitudes, freqsShear, freqsNormal, title="Shear Amplitudes")
-    heatmapPlot(fileName+"_Relative.png", relativeAbsoluteAmplitudes, freqsShear, freqsNormal, title="Relative Amplitudes")
+            try:
+                listNormalPha[j] = [ctrlNormal.Rp() for _ in range(sampleDrops+1)][-1]
+            except:
+                listNormalPha[j] = np.nan
+
+            try:
+                listShearAmp[j] = [ctrlShear.Rm() for _ in range(sampleDrops+1)][-1]
+            except:
+                listShearAmp[j] = np.nan
+
+            try:
+                listShearPha[j] = [ctrlShear.Rp() for _ in range(sampleDrops+1)][-1]
+            except:
+                listShearPha[j] = np.nan
+
+        normAmpFile.write(str(listNormalAmp)[1:-1]+"\n")
+        sheaAmpFile.write(str(listShearAmp)[1:-1]+"\n")
+        normPhaFile.write(str(listNormalPha)[1:-1]+"\n")
+        sheaPhaFile.write(str(listShearPha)[1:-1]+"\n")
+        normAmpFile.flush()
+        sheaAmpFile.flush()
+        normPhaFile.flush()
+        sheaPhaFile.flush()
+
+    print(f"\nFinished after: {timedelta(seconds=time.time()-tPre)}\n")
+
+    normAmpFile.close()
+    sheaAmpFile.close()
+    normPhaFile.close()
+    sheaPhaFile.close()
+
+    normalAmplitudes= np.genfromtxt(os.path.join(fileName,"NormalAmp.csv"), delimiter=",")
+    normalPhases    = np.genfromtxt(os.path.join(fileName,"NormalPha.csv") , delimiter=",")
+    shearAmplitudes = np.genfromtxt(os.path.join(fileName,"ShearAmp.csv"), delimiter=",")
+    shearPhases     = np.genfromtxt(os.path.join(fileName,"ShearPha.csv") , delimiter=",")
+
+    normalisedAbsoluteAmplitudes = np.sqrt(((normalAmplitudes/normalAmplitudes.max())**2+(shearAmplitudes/shearAmplitudes.max())**2)/2)
+    heatmapPlot(os.path.join(fileName,"NormalAmp.png"), normalAmplitudes, freqsShear, freqsNormal, title="Normal Amplitudes")
+    heatmapPlot(os.path.join(fileName,"ShearAmp.png") , shearAmplitudes, freqsShear, freqsNormal, title="Shear Amplitudes")
+    heatmapPlot(os.path.join(fileName,"NormalisedAmp.png"), normalisedAbsoluteAmplitudes, freqsShear, freqsNormal, title="Normalised Amplitudes")
+    
+    normalisedAbsolutePhases= np.sqrt(((normalPhases/normalPhases.max())**2+(shearPhases/shearPhases.max())**2)/2)
+    heatmapPlot(os.path.join(fileName,"NormalPha.png"),     normalPhases, freqsShear, freqsNormal, title="Normal Phases")
+    heatmapPlot(os.path.join(fileName,"ShearPha.png") ,      shearPhases, freqsShear, freqsNormal, title="Shear Phases")
+    heatmapPlot(os.path.join(fileName,"NormalisedPha.png"), normalisedAbsolutePhases, freqsShear, freqsNormal, title="Normalised Phases")
 
     ctrlNormal.ser.close()
     ctrlShear.ser.close()
@@ -119,18 +167,23 @@ if __name__ == "__main__":
     freqShearStart=452.6
     freqShearEnd=457.6
 
-    freqsNormal = np.linspace(freqNormalStart, freqNormalEnd, int((freqNormalEnd-freqNormalStart+1)/resolution), endpoint=True)
-    freqsShear = np.linspace(freqShearStart, freqShearEnd, int((freqShearEnd-freqShearStart+1)/resolution), endpoint=True)
+    freqsNormal = np.linspace(freqNormalStart, freqNormalEnd, int((freqNormalEnd-freqNormalStart)/resolution+1), endpoint=True)
+    freqsShear = np.linspace(freqShearStart, freqShearEnd, int((freqShearEnd-freqShearStart)/resolution+1), endpoint=True)
+
+    ctrlNormal: sfa.sfa = sfa.sfa(SN="A9JSTXTQA")
+    ctrlShear: sfa.sfa = sfa.sfa(SN="A9TQAG5OA")
 
     fileName = fileAvailable(
         folder = os.path.abspath("./Data"),
         name = time.strftime("%Y-%m-%d_%H-%M")
     ).split(".")[0]
 
-    main(
+    frequencySweep2D(
         fileName,
+        ctrlNormal=ctrlNormal,
+        ctrlShear=ctrlShear,
         freqsNormal=freqsNormal,
         freqsShear=freqsShear,
-        delay = 1,
+        delay = 0.5,
         sampleDrops = 5
     )
