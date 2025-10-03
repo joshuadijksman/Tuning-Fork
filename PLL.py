@@ -8,16 +8,18 @@ At resonance, the amplitude will be greatest and the phase shift at 0.
 import numpy as np
 import time
 from newsfa import sfa  # Ensure sfa.py is in the same directory
-
+from rigol_dg1022 import RigolDG
 
 def PLL1D(
     ctrl: sfa,
+    freqGen: RigolDG,
     freqMin: int | float,
     freqMax: int | float,
-    points: int = 20,
+    points: int = 11,
     tolerance: int | float = 1e-3,
-    iterations: int = 20,
-    Kp=15/(4 * np.pi),
+    iterations: int = 20, 
+    freqGenChannel: int = 1,
+    Kp=1/(np.pi),
     delay: float = 0.75,
     sampleDrops: int = 3
     ) -> list[float]:
@@ -35,7 +37,7 @@ def PLL1D(
     amplitudes = np.zeros_like(freqs)
 
     for i, f in enumerate(freqs):
-        ctrl.Sf(f)
+        freqGen.set_frequency(freqGenChannel, f)
         time.sleep(delay)
 
         try:
@@ -49,7 +51,7 @@ def PLL1D(
     fRes: float = freqs[best_index]
     print(f"Initial guess from amplitude sweep: {fRes:.3f} Hz")
 
-    ctrl.Sf(fRes)
+    freqGen.set_frequency(freqGenChannel, fRes)
     time.sleep(delay)
 
     try:
@@ -68,7 +70,7 @@ def PLL1D(
     fRes = fRes + Kp * np.deg2rad(phaseDeg)
     
     for i in range(iterations):
-        ctrl.Sf(fRes)
+        freqGen.set_frequency(freqGenChannel, fRes)
         time.sleep(delay)
 
         try:
@@ -105,11 +107,12 @@ def PLL1D(
 def PLL2D(
     ctrlNormal: sfa,
     ctrlShear: sfa,
+    freqGen: RigolDG,
     freqNormalRange: list[int | float] = [789.5, 794.5],
     freqShearRange: list[int | float] = [452.6, 457.6],
     delay: int | float = 0.75,
     iterations: int = 3,
-    Kp: float = 15 / (4 * np.pi),
+    Kp: float = 1 / (np.pi),
     tolerance: float = 1e-3,
     sampleDrops: int = 3,
     points: list[int] = [6, 6],
@@ -132,10 +135,10 @@ def PLL2D(
     amps = np.zeros(shape=(points[0], points[1]))
 
     for i, fNormal in enumerate(freqsNormal.data):
-        ctrlNormal.Sf(fNormal)
+        freqGen.set_frequency(1, fNormal)
 
         for j, fShear in enumerate(freqsShear.data):
-            ctrlShear.Sf(fShear)
+            freqGen.set_frequency(2, fShear)
             time.sleep(delay)
 
             try:
@@ -152,11 +155,11 @@ def PLL2D(
 
     # Normal loop
     for i in range(iterations):
-        ctrlNormal.Sf(fResNormal)
+        freqGen.set_frequency(1, fResNormal)
 
         # Shear loop
         for j in range(iterations):
-            ctrlShear.Sf(fResShear)
+            freqGen.set_frequency(2, fResShear)
             time.sleep(delay)
 
             try:
@@ -213,6 +216,7 @@ def PLL2D(
 def PLL2x1D(
     ctrlNormal: sfa,
     ctrlShear: sfa,
+    freqGen: RigolDG,
     freqNormalRange: list[int | float] = [789.5, 794.5],
     freqShearRange: list[int | float] = [452.6, 457.6],
     points: list[int] = [6, 6],
@@ -234,9 +238,11 @@ def PLL2x1D(
 
     optNormal = PLL1D(
         ctrlNormal,
+        freqGen,
         freqNormalRange[0],
         freqNormalRange[1],
         points[0],
+        freqGenChannel=1,
         tolerance=tolerance,
         iterations=iterations,
         Kp=Kp,
@@ -245,9 +251,11 @@ def PLL2x1D(
     )
     optShear = PLL1D(
         ctrlShear,
+        freqGen,
         freqShearRange[0],
         freqShearRange[1],
         points[1],
+        freqGenChannel=2,
         tolerance=tolerance,
         iterations=iterations,
         Kp=Kp,
@@ -261,9 +269,13 @@ def PLL2x1D(
 if __name__ == "__main__":
     # Create an instance of the sfa class.
     ctrlNormal = sfa(SN="")
-
+    freqGen = RigolDG()
+    freqGen.set_waveform(1, "SIN")
+    freqGen.set_waveform(2, "SIN")
+    freqGen.set_output(1, True)
+    freqGen.set_output(2, True)
     # Run the PLL routine to estimate the resonance frequency.
-    resonance_freq = PLL1D(ctrlNormal, 789.5, 794.5)
+    resonance_freq = PLL1D(ctrlNormal, freqGen, 789.5, 794.5)
     print(f"Final estimated resonance frequency: {resonance_freq:.6f} Hz")
 
     # Close the serial connection.
