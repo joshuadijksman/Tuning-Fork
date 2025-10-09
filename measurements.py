@@ -7,6 +7,7 @@ from mitutoyo import mitutoyo
 from rigol_dg1022 import RigolDG
 from PLL import PLL1D, PLL2D, PLL2x1D
 import pandas as pd
+import matplotlib.pyplot as plt
 
 def viscosity1D(ctrl: sfa,
                 freqGen: RigolDG,
@@ -18,7 +19,7 @@ def viscosity1D(ctrl: sfa,
                 step_V=1.0,
                 pll_tol=0.1, 
                 pll_maxiter=25, 
-                pll_gamma=1, 
+                Kp=1/(4*np.pi), 
                 pll_delay=1.5,
                 min_amp=0.0003):
     
@@ -78,7 +79,7 @@ def viscosity1D(ctrl: sfa,
             current_f+1,
             tolerance=pll_tol,
             iterations=pll_maxiter,
-            Kp=1/(4*np.pi),
+            Kp=Kp,
             delay=pll_delay
         )
 
@@ -94,10 +95,10 @@ def viscosity1D(ctrl: sfa,
             'phase(deg)': P
         }
 
-
     # RETRACT SWEEP (back to start_V)
     if contact_idx is not None:
-        for zV in z_values[:contact_idx + 1][::-1]:
+        rows2 = len(z_values[:contact_idx + 1][::-1])*[]
+        for idx, zV in enumerate(z_values[:contact_idx + 1][::-1]):
             print(f"\n[MEAS] Retract Z={zV:.1f} V")
             zStage.absolute_voltage(zV)
             time.sleep(0.5)
@@ -109,14 +110,15 @@ def viscosity1D(ctrl: sfa,
             if np.isfinite(h) and h > 0.0:
                 print(
                     f"[MEAS] Contact (retract) at Z={zV:.1f} V (h={h:.3f} mm)")
-                rows.append({
+                rows2[idx] = {
                     'z_voltage_cmd': zV,
                     'z_voltage_read': zV_read,
                     'height_mm': h,
                     'f_res(Hz)': current_f,
                     'amplitude(V)': np.nan,
                     'phase(deg)': np.nan
-                })
+                }
+
                 break
 
             # amplitude next
@@ -125,14 +127,14 @@ def viscosity1D(ctrl: sfa,
             if np.isfinite(A) and A < min_amp:
                 print(
                     f"[MEAS] A={A:.6f} < {min_amp:.3f}; skipping PLL & phase at Z={zV:.1f} V")
-                rows.append({
+                rows2[idx] = {
                     'z_voltage_cmd': zV,
                     'z_voltage_read': zV_read,
                     'height_mm': h,
                     'f_res(Hz)': current_f,
                     'amplitude(V)': A,
                     'phase(deg)': np.nan
-                })
+                }
                 continue
 
             # PLL + full readout
@@ -150,42 +152,41 @@ def viscosity1D(ctrl: sfa,
             P = ctrl.readPhase()
 
             print(f"[MEAS] h={h:.3f} mm, A={A:.6f}, phase={P:.2f}")
-            rows.append({
+            rows2[idx] = {
                 'z_voltage_cmd': zV,
                 'z_voltage_read': zV_read,
                 'height_mm': h,
                 'f_res(Hz)': current_f,
                 'amplitude(V)': A,
                 'phase(deg)': P
-            })
+            }
 
     # finally reset Z-stage home
     zStage.absolute_voltage(start_V)
     print(f"[MEAS] Z-stage reset to {start_V} V")
 
+    rows.append(rows2)
+
     # save & plot as before…
     dfm = pd.DataFrame(rows)
-    # ts = time.strftime("%Y%m%d_%H%M%S")
-    # filename = f"viscosity_with_PLL_{ts}.csv"
-    # dfm.to_csv(filename, index=False)
-    # print(f"[MEAS] Saved data to {filename}")
+    ts = time.strftime("%Y%m%d_%H%M%S")
+    filename = f"viscosity_with_PLL_{ts}.csv"
+    dfm.to_csv(filename, index=False)
+    print(f"[MEAS] Saved data to {filename}")
 
-    # for col_x, col_y, xlabel, ylabel, title, fn in [
-    #     ('height_mm', 'amplitude(V)', 'Height (mm)',
-    #      'Amplitude (V)', 'Amp vs Height', 'amp_vs_height'),
-    #     ('f_res(Hz)', 'amplitude(V)', 'Freq (Hz)',
-    #      'Amplitude (V)', 'Amp vs Freq', 'amp_vs_freq'),
-    #     ('height_mm', 'f_res(Hz)', 'Height (mm)',
-    #      'Res Freq (Hz)', 'Freq vs Height', 'freq_vs_height'),
-    # ]:
-    #     plt.figure(figsize=(6, 4))
-    #     plt.plot(dfm[col_x], dfm[col_y], 'o-')
-    #     plt.xlabel(xlabel)
-    #     plt.ylabel(ylabel)
-    #     plt.title(title)
-    #     plotfile = f"{fn}_{ts}.png"
-    #     plt.savefig(plotfile, dpi=300)
-    #     plt.close()
-    #     print(f"[MEAS] Saved plot {plotfile}")
+    for col_x, col_y, xlabel, ylabel, title, fn in [
+        ('height_mm', 'amplitude(V)', 'Height (mm)', 'Amplitude (V)', 'Amp vs Height' , 'amp_vs_height'),
+        ('f_res(Hz)', 'amplitude(V)', 'Freq (Hz)'  , 'Amplitude (V)', 'Amp vs Freq'   , 'amp_vs_freq'),
+        ('height_mm', 'f_res(Hz)'   , 'Height (mm)', 'Res Freq (Hz)', 'Freq vs Height', 'freq_vs_height')
+    ]:
+        plt.figure(figsize=(6, 4))
+        plt.plot(dfm[col_x], dfm[col_y], 'o-')
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
+        plt.title(title)
+        plotfile = f"{fn}_{ts}.png"
+        plt.savefig(plotfile, dpi=300)
+        plt.close()
+        print(f"[MEAS] Saved plot {plotfile}")
 
     return dfm
