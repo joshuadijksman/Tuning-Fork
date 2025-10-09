@@ -39,9 +39,9 @@ class sfa():
 
 
     def __write_read(self, cmd: str) -> str:
-        self.__write(cmd)
 
         for _ in range(self.readDrops):
+            self.__write(cmd)
             kar = self.ser.read().decode()
             feedback = kar
             while kar != '\r':
