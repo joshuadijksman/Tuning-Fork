@@ -20,8 +20,7 @@ def PLL1D(
     iterations: int = 20, 
     freqGenChannel: int = 1,
     Kp=1/(np.pi),
-    delay: float = 0.75,
-    sampleDrops: int = 3
+    delay: float = 0.75
     ) -> list[float]:
     """
     Find the resonance frequency using a PLL approach via the sfa controller.
@@ -225,8 +224,7 @@ def PLL2x1D(
         tolerance=tolerance,
         iterations=iterations,
         Kp=Kp,
-        delay=delay,
-        sampleDrops=sampleDrops
+        delay=delay
     )
     optShear = PLL1D(
         ctrlShear,
@@ -238,8 +236,7 @@ def PLL2x1D(
         tolerance=tolerance,
         iterations=iterations,
         Kp=Kp,
-        delay=delay,
-        sampleDrops=sampleDrops
+        delay=delay
     )
 
     return [optNormal, optShear]
