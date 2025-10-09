@@ -1,13 +1,16 @@
 import numpy as np
 import time
+import pandas as pd
+import matplotlib.pyplot as plt
+import os
 
 from newsfa import sfa
 from pi_e_625 import pi_e_625
 from mitutoyo import mitutoyo
 from rigol_dg1022 import RigolDG
 from PLL import PLL1D, PLL2D, PLL2x1D
-import pandas as pd
-import matplotlib.pyplot as plt
+from frequencySweep2D import folderAvailable
+from plots import linePlot
 
 def viscosity1D(ctrl: sfa,
                 freqGen: RigolDG,
@@ -189,4 +192,81 @@ def viscosity1D(ctrl: sfa,
         plt.close()
         print(f"[MEAS] Saved plot {plotfile}")
 
-    return dfm
+    return rows
+
+def frequencyDependence(
+        ctrlNorm: sfa,
+        ctrlShea: sfa,
+        freqGen: RigolDG,
+        freqResMin: float,
+        freqResMax: float,
+        freqsSweep,
+        findNorm: bool = True,
+        **kwargs
+    ):
+    """
+    Finds resonane frequency while sweeping through the other's frequencies.
+
+    Defaults to checking normal resonance on each shear frequency.
+    """
+    delay = kwargs.pop("delay", 1.)
+
+    if "filePath" in kwargs:
+        filePath: str = kwargs.pop("filePath")
+        if not os.path.exists(filePath):
+            os.mkdir(filePath)
+    else:
+        filePath = folderAvailable(
+            path = os.path.abspath("./Data"),
+            name = time.strftime("%Y-%m-%d_%H-%M")
+        )
+        os.mkdir(filePath)
+    
+    open(file=os.path.join(filePath, "freqDepen.csv"), mode="x").close()
+
+    if findNorm:
+        channelX = 2
+        channelY = 1
+        title = "Normal Resonance dependance on Shear"
+        xLabel = "Shear Frequency (Hz)"
+        yLabel = "Normal Resonance Frequency (Hz)"
+    else:
+        ctrlNorm, ctrlShea = ctrlShea, ctrlNorm
+        channelX = 1
+        channelY = 2
+        title = "Shear Resonance dependance on Normal"
+        xLabel = "Normal Frequency (Hz)"
+        yLabel = "Shear Resonance Frequency (Hz)"
+    
+    resonance = len(freqsSweep)*[0.]
+
+    file = open(file=os.path.join(filePath, "freqDepen.csv"), mode="a")
+
+    for idx, fre in enumerate(freqsSweep):
+        freqGen.set_frequency(channelX, fre)
+        time.sleep(delay)
+        res, _, _ = PLL1D(
+            ctrl=ctrlNorm,
+            freqGen=freqGen,
+            freqMin=freqResMin,
+            freqMax=freqResMax,
+            tolerance=kwargs.get("tolerance", 0.001),
+            iterations=kwargs.get("iterations", 11),
+            freqGenChannel=channelY,
+            Kp=kwargs.get("Kp", 1/np.pi),
+            delay=delay
+        )
+        resonance[idx] = res
+        file.write(str(res)+"\n")
+        file.flush()
+    file.close()
+    linePlot(
+        os.path.join(filePath, "freqDepen.png"),
+        freqsSweep,
+        resonance,
+        xLabel,
+        yLabel,
+        title=title
+    )
+
+    return resonance
