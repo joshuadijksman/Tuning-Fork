@@ -7,17 +7,22 @@ from rigol_dg1022 import RigolDG
 from plots import heatmapPlot
 
 
-def fileAvailable(folder, name, n=0) -> str:
+def folderAvailable(path, name, n=0) -> str:
+    """
+    Checks if folder is available, returns filepath.
+
+    If folder name is already used, adds ```_n``` to the end, with ```n``` increasing per folder with the same name.
+    """
     if n == 0:
-        if os.path.exists(os.path.join(folder, name)):
-            return fileAvailable(folder, name, n=n+1)
+        if os.path.exists(os.path.join(path, name)):
+            return folderAvailable(path, name, n=n+1)
         else:
-            return os.path.join(folder, name)
+            return os.path.join(path, name)
     else:
-        if os.path.exists(os.path.join(folder, name + f"_{n}")):
-            return fileAvailable(folder, name, n=n+1)
+        if os.path.exists(os.path.join(path, name + f"_{n}")):
+            return folderAvailable(path, name, n=n+1)
         else:
-            return os.path.join(folder, name+f"_{n}")
+            return os.path.join(path, name+f"_{n}")
 
 
 def frequencySweep2D(
@@ -136,10 +141,10 @@ if __name__ == "__main__":
     freqGen.set_output(1, True)
     freqGen.set_output(2, True)
 
-    fileName = fileAvailable(
-        folder = os.path.abspath("./Data"),
+    fileName = folderAvailable(
+        path = os.path.abspath("./Data"),
         name = time.strftime("%Y-%m-%d_%H-%M")
-    ).split(".")[0]
+    )
 
     frequencySweep2D(
         fileName,
