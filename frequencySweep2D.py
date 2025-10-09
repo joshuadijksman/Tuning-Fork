@@ -5,6 +5,7 @@ from datetime import timedelta
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from rigol_dg1022 import RigolDG
 
 def heatmapPlot(fName: str, data: list[list[int|float]] | np.ndarray, xTickLabels: list[int|float] = [], yTickLabels: list[int|float] = [], title: str = "", xTicks: int = 10, yTicks: int = 10, xTickLabelRound: int = 4, yTickLabelRound: int = 4, figsize=(9,6)) -> None:
     fig = plt.figure(None, figsize)
@@ -65,6 +66,7 @@ def frequencySweep2D(
     fileName: str,
     ctrlNormal: sfa.sfa,
     ctrlShear: sfa.sfa,
+    freqGen: RigolDG,
     freqsNormal,
     freqsShear,
     delay: float = 2.,
@@ -100,9 +102,9 @@ def frequencySweep2D(
         listShearAmp = lenShear*[0.]
         listShearPha =lenShear*[0.]
 
-        ctrlNormal.Sf(fNormal)
+        freqGen.set_frequency(1, fNormal)
         for j, fShear in enumerate(freqsShear):
-            ctrlShear.Sf(fShear)
+            freqGen.set_frequency(2, fShear)
             time.sleep(delay)
             try:
                 listNormalAmp[j] = [ctrlNormal.Rm() for _ in range(sampleDrops+1)][-1]
@@ -173,6 +175,12 @@ if __name__ == "__main__":
     ctrlNormal: sfa.sfa = sfa.sfa(SN="A9JSTXTQA")
     ctrlShear: sfa.sfa = sfa.sfa(SN="A9TQAG5OA")
 
+    freqGen = RigolDG()
+    freqGen.set_waveform(1, "SIN")
+    freqGen.set_waveform(2, "SIN")
+    freqGen.set_output(1, True)
+    freqGen.set_output(2, True)
+
     fileName = fileAvailable(
         folder = os.path.abspath("./Data"),
         name = time.strftime("%Y-%m-%d_%H-%M")
@@ -180,6 +188,7 @@ if __name__ == "__main__":
 
     frequencySweep2D(
         fileName,
+        freqGen=freqGen,
         ctrlNormal=ctrlNormal,
         ctrlShear=ctrlShear,
         freqsNormal=freqsNormal,
