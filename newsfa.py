@@ -3,22 +3,14 @@
 ##  Rf;       | This command returns the current normal frequency
 ##  Sa (x);   | This command sets the normal sine out amplitude to x (note that if the amplitude controller is engaged this value will be overwritten)
 ##  Ra;       | This command returns the current normal sine out amplitude
-##  Ssa (x);  | This command sets the amplitude setpoint for the normal amplitude controller to x
-##  Rsa;      | This command returns the current normal amplitude setpoint for the amplitude controller
 ##  Rp;       | This command returns the current normal phase
-##  Ef (X);   | This command enables or disables the normal frequency controller (x = 1 enables the controller and x = 2 disables the controller)
-##  Ea (X);   | This command enables or disables the normal amplitude controller (x = 1 enables the controller and x = 2 disables the controller)
-##  Ed (X);   | This command enables or disables the data stream (x = 1 enables the stream and x = 2 disables the stream)
-##  SCe (X);  | This command sets the exponential term for the normal frequency controller
-##  SCl (X);  | This command sets the linear term for the normal frequency controller
-##  SCp (X);  | This command sets both exponential and linear terms for the normal frequency controller (1 = open air, 2 = 20 cSt, 3 = 500 cSt, 4 = 10 000 cSt, 5 = 30 000 cSt)
-##  SCAl (X); | This command sets the linear term for the normal amplitude controller
-##  SCAp (X); | This command sets the linear term for the normal amplitude controller (preset 1 is most conservative and preset 5 is most agressive)
 
 import serial
 
 from serial.tools import list_ports
 from serial.tools.list_ports_common import ListPortInfo
+
+from numpy import nan
 
 def find_unique_dev_by_pidvid(vid: int, pid: int) -> ListPortInfo | None:
      """Find port by Vendor ID and Product ID"""
@@ -34,122 +26,93 @@ def find_unique_dev_by_serial_number(sn: str) -> ListPortInfo | None:
 
 class sfa():
 
-    def __init__(self, SN: str) -> None:
+    def __init__(self, SN: str, readDrops: int = 3) -> None:
         port = str(find_unique_dev_by_serial_number(sn=SN)).split(" ")[0]
         self.ser = serial.Serial(port, baudrate=9600,timeout=20)
+        self.readDrops = readDrops
         
 
-    def write(self, cmd: str) -> None:
+    def __write(self, cmd: str) -> None:
         senddata = cmd  + '\n\r'
         self.ser.write(senddata.encode())
         return
 
 
-    def write_read(self, cmd: str) -> str:
-        self.write(cmd)
+    def __write_read(self, cmd: str) -> str:
+        self.__write(cmd)
 
-        kar = self.ser.read().decode()
-        terug = kar
-        while kar != '\r':
+        for _ in range(self.readDrops):
             kar = self.ser.read().decode()
-            terug = terug + kar
-        terug = terug.strip()  
-        return terug
+            feedback = kar
+            while kar != '\r':
+                kar = self.ser.read().decode()
+                feedback = feedback + kar
+            feedback = feedback.strip()
+            
+        return feedback
 
 
-    ##  Sf (x);   | This command sets the normal frequency to x (note that if the frequency controller is engaged this value will be overwritten)
-    def Sf (self, x: float) -> None:
+    def setFrequency (self, frequency: float) -> None:
+        """
+        # **OBSOLETE** use rigol_dg1022
+        
+        Set frequency
+        """
+        command = "FREQ " + str(round(frequency,6))
+        self.__write(command)
 
-        command = "FREQ " + str(round(x,6))
-        self.write(command)
 
-    ##  Rf;       | This command returns the current normal frequency
-    def Rf(self) -> float:
+    def readFrequency(self) -> float:
+        """
+        Read frequency
 
+        Reads current frequency set or NaN on bad read.
+        """
         command = "FREQ?"
-        feedback = self.write_read(command)
-        return float(feedback)
+        feedback = self.__write_read(command)
+        try:
+            freq = float(feedback)
+        except ValueError:
+            freq = nan
+        
+        return freq
 
-    ##  Sa (x);   | This command sets the normal sine out amplitude to x (note that if the amplitude controller is engaged this value will be overwritten)
-    def Sa (self, volt: float) -> None:
+    def setAmplitude (self, volt: float) -> None:
         """
         Set normal sine out amplitude voltage.
         """
         self.sine_out_amplitude = round(volt,6)
         command = "SLVL "  + str(self.sine_out_amplitude)
         
-        self.write(command)
+        self.__write(command)
 
-    def Rm(self) -> float:
+
+    def readAmplitude(self) -> float:
         """
         Read amplitude
+
+        Returns amplite  or NaN on bad read.
         """
-
-        rawA = self.write_read("outp? 3")
-      #  try:
-        amp = round(float(rawA),6)
-      #  except ValueError:
-      #      amp = 0.0
+        rawA = self.__write_read("outp? 3")
+        try:
+            amp = round(float(rawA),6)
+        except ValueError:
+            amp = nan
         return amp
-        
+    
 
-    # ##  Ra;       | This command returns the current normal sine out amplitude
-    def Ra (self) -> float:
-        return self.sine_out_amplitude
-
-    ##  Rp;       | This command returns the current normal phase
-    def Rp (self) -> float:
+    def readPhase (self) -> float:
         """
         Read phase
 
-        Returns current normal phase
+        Returns current normal phase or NaN on bad read.
         """
-
         command = "OUTP? 4"
-        feedback = self.write_read(command)
-        return float(feedback)
+        feedback = self.__write_read(command)
 
+        try:
+            pha = float(feedback)
+        except ValueError:
+            pha = nan
 
-##    ##  Ssa (x);  | This command sets the amplitude setpoint for the normal amplitude controller to x
-##    def Ssa (self,x):
-##        self.write('Ssa ' + str(x))
-##
-##    ##  Rsa;      | This command returns the current normal amplitude setpoint for the amplitude controller
-##    def Rsa (self):
-##        return self.write_read("Rsa").replace("normal amplitude setpoint = ","")
-
-##
-##    ##  SCe (X);  | This command sets the exponential term for the normal frequency controller
-##    def SCe (self,x):
-##        self.write('SCe ' + str(x))
-##
-##    ##  SCl (X);  | This command sets the linear term for the normal frequency controller
-##    def SCl (self,x):
-##        self.write('SCl ' + str(x))
-##
-##    ##  SCp (X);  | This command sets both exponential and linear terms for the normal frequency controller (1 = open air, 2 = 20 cSt, 3 = 500 cSt, 4 = 10 000 cSt, 5 = 30 000 cSt)
-##    def SCp (self,x):
-##        return self.write_read('SCp ' + str(x))
-##
-##    ##  SCAl (X); | This command sets the linear term for the normal amplitude controller
-##    def SCAl (self,x):
-##        self.write('SCAl ' + str(x))
-##
-##    ##  SCAp (X); | This command sets the linear term for the normal amplitude controller (preset 1 is most conservative and preset 5 is most agressive)
-##    def SCAp (self,x):
-##        return self.write_read('SCAp ' + str(x))
-##
-
-if __name__ == '__main__':
-    import time
-    s = sfa(SN="")
-
-    time.sleep(2)
-    s.Sf(1021.02)
-    time.sleep(2)
-    print("Rf:", s.Rf())
-    print("Rm:", s.Rm())
-    print("Rp:", s.Rp())
-    print("end")
-
-    s.ser.close()
+        return pha

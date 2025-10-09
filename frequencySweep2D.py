@@ -28,7 +28,6 @@ def frequencySweep2D(
     freqsNormal,
     freqsShear,
     delay: float = 2.,
-    sampleDrops: int = 3,
     sysDelay: float = 0.777
     ) -> None:
 
@@ -36,9 +35,6 @@ def frequencySweep2D(
 
     lenNormal = len(freqsNormal)
     lenShear = len(freqsShear)
-
-    ctrlShear.Sa(0.02)
-    ctrlNormal.Sa(0.006)
 
     open(file=os.path.join(fileName,"NormalAmp.csv"), mode="x").close()
     open(file=os.path.join(fileName,"ShearAmp.csv") , mode="x").close()
@@ -65,22 +61,22 @@ def frequencySweep2D(
             freqGen.set_frequency(2, fShear)
             time.sleep(delay)
             try:
-                listNormalAmp[j] = [ctrlNormal.Rm() for _ in range(sampleDrops+1)][-1]
+                listNormalAmp[j] = ctrlNormal.readAmplitude()
             except:
                 listNormalAmp[j] = np.nan
 
             try:
-                listNormalPha[j] = [ctrlNormal.Rp() for _ in range(sampleDrops+1)][-1]
+                listNormalPha[j] = ctrlNormal.readPhase()
             except:
                 listNormalPha[j] = np.nan
 
             try:
-                listShearAmp[j] = [ctrlShear.Rm() for _ in range(sampleDrops+1)][-1]
+                listShearAmp[j] = ctrlShear.readAmplitude()
             except:
                 listShearAmp[j] = np.nan
 
             try:
-                listShearPha[j] = [ctrlShear.Rp() for _ in range(sampleDrops+1)][-1]
+                listShearPha[j] = ctrlShear.readPhase()
             except:
                 listShearPha[j] = np.nan
 
@@ -152,6 +148,5 @@ if __name__ == "__main__":
         ctrlShear=ctrlShear,
         freqsNormal=freqsNormal,
         freqsShear=freqsShear,
-        delay = 0.5,
-        sampleDrops = 5
+        delay = 0.5
     )

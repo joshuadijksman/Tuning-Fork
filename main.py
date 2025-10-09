@@ -1,7 +1,6 @@
 import numpy as np
 from scipy.optimize import curve_fit
 import time
-import matplotlib.pyplot as plt
 import pandas as pd
 
 from newsfa import sfa
@@ -45,27 +44,27 @@ def calibrateAir(
     phasesDenseShear = np.empty_like(freqsDenseShear)
 
     for i, f in enumerate(freqsDenseNormal):
-        ctrlNormal.Sf(f)
+        ctrlNormal.setFrequency(f)
         time.sleep(delay)
         try:
-            ampsDenseNormal[i] = ctrlNormal.Rm()
+            ampsDenseNormal[i] = ctrlNormal.readAmplitude()
         except:
             ampsDenseNormal[i] = np.nan
         try:
-            phasesDenseNormal[i] = ctrlNormal.Rp()
+            phasesDenseNormal[i] = ctrlNormal.readPhase()
         except:
             phasesDenseNormal[i] = np.nan
         print(f"[CAL] Dense sweep: f={f:.3f} Hz, A={ampsDenseNormal[i]:.6f}, φ={phasesDenseNormal[i]:.2f}")
 
     for i, f in enumerate(freqsDenseShear):
-        ctrlShear.Sf(f)
+        ctrlShear.setFrequency(f)
         time.sleep(delay)
         try:
-            ampsDenseShear[i] = ctrlShear.Rm()
+            ampsDenseShear[i] = ctrlShear.readAmplitude()
         except:
             ampsDenseShear[i] = np.nan
         try:
-            phasesDenseShear[i] = ctrlShear.Rp()
+            phasesDenseShear[i] = ctrlShear.readPhase()
         except:
             phasesDenseShear[i] = np.nan
         print(f"[CAL] Dense sweep: f={f:.3f} Hz, A={ampsDenseShear[i]:.6f}, φ={phasesDenseShear[i]:.2f}")
@@ -97,7 +96,7 @@ def calibrateAir(
     f0Normal = omega0Normal/(2*np.pi)
     print(f"[CAL] (Normal) Fit results: C={CNormal:.3e}, γ_sys={gammaNormal:.3e}, f_res={f0Normal:.6f} Hz")
 
-    ctrlNormal.Sf(round(f0Normal,6))
+    ctrlNormal.setFrequency(round(f0Normal,6))
 
     poptShear, _ = curve_fit(
         A_model,
@@ -112,7 +111,7 @@ def calibrateAir(
     f0Shear = omega0Shear/(2*np.pi)
     print(f"[CAL] (Shear) Fit results: C={CShear:.3e}, γ_sys={gammaShear:.3e}, f_res={f0Shear:.6f} Hz")
 
-    ctrlShear.Sf(round(f0Shear,6))
+    ctrlShear.setFrequency(round(f0Shear,6))
 
     return [f0Normal, CNormal, gammaNormal], [f0Shear, CShear, gammaShear]
 
@@ -136,7 +135,7 @@ def calibrateDistance(ctrlNormal: sfa,
     time.sleep(1)
     input("Adjust probe to surface and back off, then press Enter.")
 
-    A0 = ctrlNormal.Rm()
+    A0 = ctrlNormal.readAmplitude()
 
     print(f"[DIST] Baseline A0 = {A0:.6f}")
 
@@ -150,7 +149,7 @@ def calibrateDistance(ctrlNormal: sfa,
         time.sleep(delay)
 
         try:
-            A = ctrlNormal.Rm()
+            A = ctrlNormal.readAmplitude()
         except:
             A = np.nan
         try:
@@ -181,7 +180,7 @@ def calibrateDistance(ctrlNormal: sfa,
         z_stage.absolute_voltage(voltage)
         time.sleep(delay)
         try:
-            A = ctrlNormal.Rm()
+            A = ctrlNormal.readAmplitude()
         except:
             A = np.nan
         try:
@@ -211,8 +210,8 @@ def main() -> None:
     zStage = pi_e_625()
     hDev = mitutoyo()
 
-    ctrlNormal.Sa(0.006)
-    ctrlShear.Sa(0.012)
+    ctrlNormal.setAmplitude(0.006)
+    ctrlShear.setAmplitude(0.012)
 
     optNormal, optShear = calibrateAir(ctrlNormal, ctrlShear)
 

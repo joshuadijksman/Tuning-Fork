@@ -40,10 +40,7 @@ def PLL1D(
         freqGen.set_frequency(freqGenChannel, f)
         time.sleep(delay)
 
-        try:
-            amp = [ctrl.Rm() for _ in range(sampleDrops+1)][-1]
-        except:
-            amp = 0.
+        amp = ctrl.readAmplitude()
 
         amplitudes[i] = amp
 
@@ -54,16 +51,13 @@ def PLL1D(
     freqGen.set_frequency(freqGenChannel, fRes)
     time.sleep(delay)
 
-    try:
-        phaseDeg = [ctrl.Rp() for _ in range(sampleDrops+1)][-1]
-    except:
-        phaseDeg = 180.0
+    phaseDeg = ctrl.readPhase()
 
     print(f"Iteration -1: Frequency = {fRes:.6f} Hz, "
             f"Phase = {phaseDeg:.2f} deg")
 
     if abs(np.deg2rad(phaseDeg)) < tolerance:
-         return [fRes, [ctrl.Rm() for _ in range(sampleDrops+1)][-1], phaseDeg]
+         return [fRes, ctrl.readAmplitude(), phaseDeg]
     
     fPrev = fRes
     phasePrev = phaseDeg
@@ -73,10 +67,7 @@ def PLL1D(
         freqGen.set_frequency(freqGenChannel, fRes)
         time.sleep(delay)
 
-        try:
-            phaseDeg = [ctrl.Rp() for _ in range(sampleDrops+1)][-1]
-        except:
-            phaseDeg = 180.0
+        phaseDeg = ctrl.readPhase()
 
         print(f"Iteration {i:3d}: Frequency = {fRes:.6f} Hz, "
             f"Phase = {phaseDeg:.2f} deg")
@@ -85,20 +76,20 @@ def PLL1D(
             if phaseDeg * phasePrev < 0:
                 f_interp = fPrev - phasePrev*(fPrev-fRes)/(phasePrev-phaseDeg)
                 print(f"  → Interpolated f_res = {f_interp:.6f} Hz")
-                return [f_interp, [ctrl.Rm() for _ in range(sampleDrops+1)][-1], phaseDeg]
+                return [f_interp, ctrl.readAmplitude(), phaseDeg]
                 
         # TODO: REVIEW THIS PART, FROM OLD "NEW" CODE. SUSPICION: WILL ALWAYS DEFAULT WHEN PHASE IS NEGATIVE, INC -180
         if phasePrev * phaseDeg < 0:
             f_interp = fPrev - phasePrev*(fRes-fPrev)/(phaseDeg-phasePrev)
             print(f"  → Sign change, interpolated f_res = {f_interp:.6f} Hz")
-            return [f_interp, [ctrl.Rm() for _ in range(sampleDrops+1)][-1], phaseDeg]
+            return [f_interp, ctrl.readAmplitude(), phaseDeg]
         
         fPrev = fRes
         phasePrev = phaseDeg
         fRes = fRes + Kp * np.deg2rad(phaseDeg)
 
     else:
-        opt = [fRes, [ctrl.Rm() for _ in range(sampleDrops+1)][-1], phaseDeg]
+        opt = [fRes, ctrl.readAmplitude(), phaseDeg]
         print("Maximum iterations reached without full convergence in the PLL loop.")
 
     return opt
@@ -141,11 +132,8 @@ def PLL2D(
             freqGen.set_frequency(2, fShear)
             time.sleep(delay)
 
-            try:
-                amps[i, j] = np.sqrt(([ctrlNormal.Rm() for _ in range(sampleDrops+1)][-1]**2)/2 +
-                                     ([ctrlNormal.Rm() for _ in range(sampleDrops+1)][-1]**2)/2)
-            except:
-                amps[i, j] = np.nan
+            amps[i, j] = np.sqrt((ctrlNormal.readAmplitude()**2)/2 +
+                                 (ctrlNormal.readAmplitude()**2)/2)
 
     indAmp = np.unravel_index(np.argmax(amps), amps.shape)
     fResNormal: float = freqsNormal[indAmp[0]]
@@ -162,11 +150,7 @@ def PLL2D(
             freqGen.set_frequency(2, fResShear)
             time.sleep(delay)
 
-            try:
-                phaseDegShear = [ctrlShear.Rp()
-                                 for _ in range(sampleDrops+1)][-1]
-            except:
-                phaseDegShear = 180.0
+            phaseDegShear = ctrlShear.readPhase()
 
             print(f"Iteration {j:3d}: Frequency = {fResShear:.6f} Hz, "
                   f"Phase = {phaseDegShear:.2f} deg")
@@ -174,22 +158,19 @@ def PLL2D(
             if abs(np.deg2rad(phaseDegShear)) < tolerance:
                 print(
                     f"(Shear) PLL converged after {j} iterations with frequency {fResShear:.6f} Hz")
-                optShear = [fResShear, [ctrlShear.Rm()
-                                        for _ in range(sampleDrops+1)][-1], phaseDegShear]
+                optShear = [fResShear, ctrlShear.readAmplitude(), phaseDegShear]
                 break
 
             fResShear = fResShear + Kp * np.deg2rad(phaseDegShear)
 
         else:
-            optShear = [fResShear, [ctrlShear.Rm()
-                                    for _ in range(sampleDrops+1)][-1], phaseDegShear]
+            optShear = [fResShear, ctrlShear.readAmplitude(), phaseDegShear]
             print(
                 "(Shear) Maximum iterations reached without full convergence in the PLL loop.")
         # End shear loop
 
         try:
-            phaseDegNormal = [ctrlNormal.Rp()
-                              for _ in range(sampleDrops+1)][-1]
+            phaseDegNormal = ctrlNormal.readPhase()
         except:
             phaseDegNormal = 180.0
 
@@ -199,14 +180,12 @@ def PLL2D(
         if abs(np.deg2rad(phaseDegNormal)) < tolerance:
             print(
                 f"(Normal) PLL converged after {i} iterations with frequency {fResNormal:.6f} Hz")
-            optNormal = [fResNormal, [ctrlNormal.Rm()
-                                      for _ in range(sampleDrops+1)][-1], phaseDegNormal]
+            optNormal = [fResNormal, ctrlNormal.readAmplitude(), phaseDegNormal]
             break
 
         fResNormal = fResNormal + Kp * np.deg2rad(phaseDegNormal)
     else:
-        optNormal = [fResNormal, [ctrlNormal.Rm()
-                                  for _ in range(sampleDrops+1)][-1], phaseDegNormal]
+        optNormal = [fResNormal, ctrlNormal.readAmplitude(), phaseDegNormal]
         print(
             "(Normal) Maximum iterations reached without full convergence in the PLL loop.")
 
