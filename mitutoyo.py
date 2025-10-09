@@ -1,5 +1,6 @@
 import serial
 from serial.tools import list_ports
+from numpy import nan
 
 def port_find_unique_dev_by_pidvid(pid: int, vid: int):
     found_devices = list(filter(lambda p: p.pid == pid and p.vid == vid, list_ports.comports()))
@@ -30,13 +31,21 @@ class mitutoyo(object):
         return a
 
     def measurement(self) -> float:
+        """
+        Measures height
+        
+        Returns height value or nan on bad read.
+        """
         m: float = 0.
         cmd = "1\r".encode()
         self.ser.write(cmd)
         a = self.answer().split('\r')[0]
 
         if a.startswith('1A'):
-            m = float(a.replace('1A', ""))
+            try:
+                m = float(a.replace('1A', ""))
+            except ValueError:
+                m = nan
         return m
 
     def info(self) -> str:

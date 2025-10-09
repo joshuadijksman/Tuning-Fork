@@ -148,14 +148,8 @@ def calibrateDistance(ctrlNormal: sfa,
         z_stage.absolute_voltage(voltage)
         time.sleep(delay)
 
-        try:
-            A = ctrlNormal.readAmplitude()
-        except:
-            A = np.nan
-        try:
-            h = height_dev.measurement()
-        except:
-            h = np.nan
+        A = ctrlNormal.readAmplitude()
+        h = height_dev.measurement()
 
         print(f"[DIST] Approach V={voltage:.1f} → A={A:.6f}, h={h:.3f}")
 
@@ -179,14 +173,8 @@ def calibrateDistance(ctrlNormal: sfa,
     for i, voltage in enumerate(voltagesRetract):
         z_stage.absolute_voltage(voltage)
         time.sleep(delay)
-        try:
-            A = ctrlNormal.readAmplitude()
-        except:
-            A = np.nan
-        try:
-            h = height_dev.measurement()
-        except:
-            h = np.nan
+        A = ctrlNormal.readAmplitude()
+        h = height_dev.measurement()
         print(f"[DIST] Retract V={voltage:.1f} → A={A:.6f}, h={h:.3f}")
         amplitudesRetract[i] = A
         heightsRetract[i] = h
