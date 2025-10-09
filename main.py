@@ -206,8 +206,8 @@ def calibrateDistance(ctrlNormal: sfa,
 
 
 def main() -> None:
-    ctrlNormal: sfa = sfa(PID=0x7523, VID=0x1A86)
-    ctrlShear: sfa = sfa(PID=0x6001, VID=0x0403)
+    ctrlNormal: sfa = sfa(SN="A9JSTXTQA")
+    ctrlShear: sfa = sfa(SN="A9TQAG5OA")
     zStage = pi_e_625()
     hDev = mitutoyo()
 
