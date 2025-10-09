@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
 from pipython import GCSDevice
 from threading import Thread
 import threading
@@ -82,32 +79,3 @@ class pi_e_625():
             self.for_task = Thread(target = self.thread_for_voltage, args =(start,end,step,waittime,))
     
             self.for_task.start()
-
-
-
-
-if __name__ == '__main__':
-
-    try:
-        print("***")
-        pd = pi_e_625()
-        time.sleep(10)
-        print(pd.request_voltage())
-        pd.absolute_voltage(0.)
-        time.sleep(1)
-        print(pd.request_voltage())
-
-        pd.for_voltage(0,1,1,1)
-
-        door = True
-        while door:
-            with pd.stopMutex:
-                door = not pd._stop
-                time.sleep(.5)
-            print(pd.request_voltage())
-    finally:
-        try:
-            pd.stop()
-        except:
-            pass
-        print("done")
