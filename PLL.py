@@ -10,6 +10,7 @@ import time
 from newsfa import sfa  # Ensure sfa.py is in the same directory
 from rigol_dg1022 import RigolDG
 
+
 def PLL1D(
     ctrl: sfa,
     freqGen: RigolDG,
@@ -17,11 +18,11 @@ def PLL1D(
     freqMax: int | float,
     points: int = 11,
     tolerance: int | float = 1e-3,
-    iterations: int = 20, 
+    iterations: int = 20,
     freqGenChannel: int = 1,
-    Kp=1/(np.pi),
-    delay: float = 0.75
-    ) -> list[float]:
+    Kp=1 / (np.pi),
+    delay: float = 0.75,
+) -> list[float]:
     """
     Find the resonance frequency using a PLL approach via the sfa controller.
 
@@ -52,37 +53,37 @@ def PLL1D(
 
     phaseDeg = ctrl.readPhase()
 
-    print(f"Iteration -1: Frequency = {fRes:.6f} Hz, "
-            f"Phase = {phaseDeg:.2f} deg")
+    print(f"Iteration -1: Frequency = {fRes:.6f} Hz, Phase = {phaseDeg:.2f} deg")
 
     if abs(np.deg2rad(phaseDeg)) < tolerance:
-         return [fRes, ctrl.readAmplitude(), phaseDeg]
-    
+        return [fRes, ctrl.readAmplitude(), phaseDeg]
+
     fPrev = fRes
     phasePrev = phaseDeg
     fRes = fRes + Kp * np.deg2rad(phaseDeg)
-    
+
     for i in range(iterations):
         freqGen.set_frequency(freqGenChannel, fRes)
         time.sleep(delay)
 
         phaseDeg = ctrl.readPhase()
 
-        print(f"Iteration {i:3d}: Frequency = {fRes:.6f} Hz, "
-            f"Phase = {phaseDeg:.2f} deg")
+        print(
+            f"Iteration {i:3d}: Frequency = {fRes:.6f} Hz, Phase = {phaseDeg:.2f} deg"
+        )
 
         if abs(np.deg2rad(phaseDeg)) < tolerance:
             if phaseDeg * phasePrev < 0:
-                f_interp = fPrev - phasePrev*(fPrev-fRes)/(phasePrev-phaseDeg)
+                f_interp = fPrev - phasePrev * (fPrev - fRes) / (phasePrev - phaseDeg)
                 print(f"  → Interpolated f_res = {f_interp:.6f} Hz")
                 return [f_interp, ctrl.readAmplitude(), phaseDeg]
-                
+
         # TODO: REVIEW THIS PART, FROM OLD "NEW" CODE. SUSPICION: WILL ALWAYS DEFAULT WHEN PHASE IS NEGATIVE, INC -180
         if phasePrev * phaseDeg < 0:
-            f_interp = fPrev - phasePrev*(fRes-fPrev)/(phaseDeg-phasePrev)
+            f_interp = fPrev - phasePrev * (fRes - fPrev) / (phaseDeg - phasePrev)
             print(f"  → Sign change, interpolated f_res = {f_interp:.6f} Hz")
             return [f_interp, ctrl.readAmplitude(), phaseDeg]
-        
+
         fPrev = fRes
         phasePrev = phaseDeg
         fRes = fRes + Kp * np.deg2rad(phaseDeg)
@@ -104,20 +105,19 @@ def PLL2D(
     iterations: int = 3,
     Kp: float = 1 / (np.pi),
     tolerance: float = 1e-3,
-    sampleDrops: int = 3,
     points: list[int] = [6, 6],
-    ) -> list[list[float]]:
+) -> list[list[float]]:
     """
     Sweeps through the shear frequencies nested in a sweep of the normal frequencies .\n
     Starts a 2D sweep. At worst O(n^2) time complexity.
 
-    :returns: [[fNormal, normalAmp, normalPha], [fShear, shearAmp, shearPha]] 
+    :returns: [[fNormal, normalAmp, normalPha], [fShear, shearAmp, shearPha]]
     :rtype: list[list[float]]
 
     """
 
-    optNormal: list[float] = [freqNormalRange[0], 0., 180.]
-    optShear: list[float] = [freqShearRange[0], 0., 180.]
+    optNormal: list[float] = [freqNormalRange[0], 0.0, 180.0]
+    optShear: list[float] = [freqShearRange[0], 0.0, 180.0]
 
     freqsNormal = np.linspace(*freqNormalRange, num=points[0], endpoint=True)
     freqsShear = np.linspace(*freqShearRange, num=points[1], endpoint=True)
@@ -131,14 +131,17 @@ def PLL2D(
             freqGen.set_frequency(2, fShear)
             time.sleep(delay)
 
-            amps[i, j] = np.sqrt((ctrlNormal.readAmplitude()**2)/2 +
-                                 (ctrlNormal.readAmplitude()**2)/2)
+            amps[i, j] = np.sqrt(
+                (ctrlNormal.readAmplitude() ** 2) / 2
+                + (ctrlNormal.readAmplitude() ** 2) / 2
+            )
 
     indAmp = np.unravel_index(np.argmax(amps), amps.shape)
     fResNormal: float = freqsNormal[indAmp[0]]
     fResShear: float = freqsShear[indAmp[1]]
     print(
-        f"Initial guess from amplitude sweep: \n Normal: {fResNormal:.3f} Hz\nShear: {fResShear:.3f} Hz")
+        f"Initial guess from amplitude sweep: \n Normal: {fResNormal:.3f} Hz\nShear: {fResShear:.3f} Hz"
+    )
 
     # Normal loop
     for i in range(iterations):
@@ -151,12 +154,15 @@ def PLL2D(
 
             phaseDegShear = ctrlShear.readPhase()
 
-            print(f"Iteration {j:3d}: Frequency = {fResShear:.6f} Hz, "
-                  f"Phase = {phaseDegShear:.2f} deg")
+            print(
+                f"Iteration {j:3d}: Frequency = {fResShear:.6f} Hz, "
+                f"Phase = {phaseDegShear:.2f} deg"
+            )
 
             if abs(np.deg2rad(phaseDegShear)) < tolerance:
                 print(
-                    f"(Shear) PLL converged after {j} iterations with frequency {fResShear:.6f} Hz")
+                    f"(Shear) PLL converged after {j} iterations with frequency {fResShear:.6f} Hz"
+                )
                 optShear = [fResShear, ctrlShear.readAmplitude(), phaseDegShear]
                 break
 
@@ -165,20 +171,21 @@ def PLL2D(
         else:
             optShear = [fResShear, ctrlShear.readAmplitude(), phaseDegShear]
             print(
-                "(Shear) Maximum iterations reached without full convergence in the PLL loop.")
+                "(Shear) Maximum iterations reached without full convergence in the PLL loop."
+            )
         # End shear loop
 
-        try:
-            phaseDegNormal = ctrlNormal.readPhase()
-        except:
-            phaseDegNormal = 180.0
+        phaseDegNormal = ctrlNormal.readPhase()
 
-        print(f"Iteration {i:3d}: Frequency = {fResNormal:.6f} Hz, "
-              f"Phase = {phaseDegNormal:.2f} deg")
+        print(
+            f"Iteration {i:3d}: Frequency = {fResNormal:.6f} Hz, "
+            f"Phase = {phaseDegNormal:.2f} deg"
+        )
 
         if abs(np.deg2rad(phaseDegNormal)) < tolerance:
             print(
-                f"(Normal) PLL converged after {i} iterations with frequency {fResNormal:.6f} Hz")
+                f"(Normal) PLL converged after {i} iterations with frequency {fResNormal:.6f} Hz"
+            )
             optNormal = [fResNormal, ctrlNormal.readAmplitude(), phaseDegNormal]
             break
 
@@ -186,7 +193,8 @@ def PLL2D(
     else:
         optNormal = [fResNormal, ctrlNormal.readAmplitude(), phaseDegNormal]
         print(
-            "(Normal) Maximum iterations reached without full convergence in the PLL loop.")
+            "(Normal) Maximum iterations reached without full convergence in the PLL loop."
+        )
 
     return [optNormal, optShear]
 
@@ -202,8 +210,7 @@ def PLL2x1D(
     Kp: float = 15 / (4 * np.pi),
     iterations: int = 3,
     delay: int | float = 0.75,
-    sampleDrops: int = 3
-    ) -> list[list[float]]:
+) -> list[list[float]]:
     """
     Sweeps through normal frequencies and the shear frequencies sequentially.\n
     Starts 2 seperate 1D sweeps, instead of the full 2D sweep. O(n) time complexity.
@@ -224,7 +231,7 @@ def PLL2x1D(
         tolerance=tolerance,
         iterations=iterations,
         Kp=Kp,
-        delay=delay
+        delay=delay,
     )
     optShear = PLL1D(
         ctrlShear,
@@ -236,7 +243,7 @@ def PLL2x1D(
         tolerance=tolerance,
         iterations=iterations,
         Kp=Kp,
-        delay=delay
+        delay=delay,
     )
 
     return [optNormal, optShear]

@@ -12,55 +12,54 @@ from serial.tools.list_ports_common import ListPortInfo
 
 from numpy import nan
 
+
 def find_unique_dev_by_pidvid(vid: int, pid: int) -> ListPortInfo | None:
-     """Find port by Vendor ID and Product ID"""
-     found_devices = list(filter(lambda p:p.vid == vid and p.pid == pid, list_ports.comports())) #  p.pid == pid and p.vid == vid and 
-     return found_devices[0] if len(found_devices) == 1 else None
+    """Find port by Vendor ID and Product ID"""
+    found_devices = list(
+        filter(lambda p: p.vid == vid and p.pid == pid, list_ports.comports())
+    ) 
+    return found_devices[0] if len(found_devices) == 1 else None
 
 
 def find_unique_dev_by_serial_number(sn: str) -> ListPortInfo | None:
-     """Find port by Serial Number"""
-     found_devices = list(filter(lambda p:p.serial_number == sn, list_ports.comports())) #  p.pid == pid and p.vid == vid and 
-     return found_devices[0] if len(found_devices) == 1 else None
+    """Find port by Serial Number"""
+    found_devices = list(
+        filter(lambda p: p.serial_number == sn, list_ports.comports())
+    )
+    return found_devices[0] if len(found_devices) == 1 else None
 
 
-class sfa():
-
+class sfa:
     def __init__(self, SN: str, readDrops: int = 3) -> None:
         port = str(find_unique_dev_by_serial_number(sn=SN)).split(" ")[0]
-        self.ser = serial.Serial(port, baudrate=9600,timeout=20)
+        self.ser = serial.Serial(port, baudrate=9600, timeout=20)
         self.readDrops = readDrops
-        
 
     def __write(self, cmd: str) -> None:
-        senddata = cmd  + '\n\r'
+        senddata = cmd + "\n\r"
         self.ser.write(senddata.encode())
         return
 
-
     def __write_read(self, cmd: str) -> str:
-
         for _ in range(self.readDrops):
             self.__write(cmd)
             kar = self.ser.read().decode()
             feedback = kar
-            while kar != '\r':
+            while kar != "\r":
                 kar = self.ser.read().decode()
                 feedback = feedback + kar
             feedback = feedback.strip()
-            
+
         return feedback
 
-
-    def setFrequency (self, frequency: float) -> None:
+    def setFrequency(self, frequency: float) -> None:
         """
         # **OBSOLETE** use rigol_dg1022
-        
+
         Set frequency
         """
-        command = "FREQ " + str(round(frequency,6))
+        command = "FREQ " + str(round(frequency, 6))
         self.__write(command)
-
 
     def readFrequency(self) -> float:
         """
@@ -74,18 +73,17 @@ class sfa():
             freq = float(feedback)
         except ValueError:
             freq = nan
-        
+
         return freq
 
-    def setAmplitude (self, volt: float) -> None:
+    def setAmplitude(self, volt: float) -> None:
         """
         Set normal sine out amplitude voltage.
         """
-        self.sine_out_amplitude = round(volt,6)
-        command = "SLVL "  + str(self.sine_out_amplitude)
-        
-        self.__write(command)
+        self.sine_out_amplitude = round(volt, 6)
+        command = "SLVL " + str(self.sine_out_amplitude)
 
+        self.__write(command)
 
     def readAmplitude(self) -> float:
         """
@@ -95,13 +93,12 @@ class sfa():
         """
         rawA = self.__write_read("outp? 3")
         try:
-            amp = round(float(rawA),6)
+            amp = round(float(rawA), 6)
         except ValueError:
             amp = nan
         return amp
-    
 
-    def readPhase (self) -> float:
+    def readPhase(self) -> float:
         """
         Read phase
 

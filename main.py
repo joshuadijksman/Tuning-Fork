@@ -117,17 +117,19 @@ def calibrateAir(
 
     return [f0Normal, CNormal, gammaNormal], [f0Shear, CShear, gammaShear]
 
-def calibrateDistance(ctrlNormal: sfa, 
-                       z_stage: pi_e_625, 
-                       height_dev: mitutoyo,
-                       start_V=10.0, 
-                       max_V=110.0, 
-                       step_V=1.0,
-                       amp_fraction=0.05,
-                       delay = 0.5
-                       ):
+
+def calibrateDistance(
+    ctrlNormal: sfa,
+    z_stage: pi_e_625,
+    height_dev: mitutoyo,
+    start_V=10.0,
+    max_V=110.0,
+    step_V=1.0,
+    amp_fraction=0.05,
+    delay=0.5,
+):
     """
-    
+
 
     Make sure to put the normal mode on resonance with a fitting amplitude.
     """
@@ -142,10 +144,10 @@ def calibrateDistance(ctrlNormal: sfa,
     print(f"[DIST] Baseline A0 = {A0:.6f}")
 
     threshold = amp_fraction * A0
-    maxPoints = int((max_V-start_V)/step_V)+1
-    amplitudes, heights = maxPoints*[0.], maxPoints*[0.]
+    maxPoints = int((max_V - start_V) / step_V) + 1
+    amplitudes, heights = maxPoints * [0.0], maxPoints * [0.0]
     voltages = np.linspace(start_V, max_V, maxPoints, endpoint=True)
-    
+
     for i, voltage in enumerate(voltages):
         z_stage.absolute_voltage(voltage)
         time.sleep(delay)
@@ -155,22 +157,26 @@ def calibrateDistance(ctrlNormal: sfa,
 
         print(f"[DIST] Approach V={voltage:.1f} → A={A:.6f}, h={h:.3f}")
 
-        amplitudes[i]=A
-        heights[i]=h
+        amplitudes[i] = A
+        heights[i] = h
 
         if np.isfinite(A) and A < threshold:
-            print(f"[DIST] Threshold reached at V={voltage:.1f} V; contact established.")
+            print(
+                f"[DIST] Threshold reached at V={voltage:.1f} V; contact established."
+            )
 
-            voltages = voltages[:i+1]
-            amplitudes = amplitudes[:i+1]
-            heights = heights[:i+1]
+            voltages = voltages[: i + 1]
+            amplitudes = amplitudes[: i + 1]
+            heights = heights[: i + 1]
             break
 
     input("Zero the height gauge at contact point, then press Enter.")
 
     print("[DIST] Retracting from contact back to start...")
-    amplitudesRetract, heightsRetract = len(voltages)*[0.], len(voltages)*[0.]
-    voltagesRetract = np.flip(np.linspace(start_V, voltages[-1], len(voltages), endpoint=True))
+    amplitudesRetract, heightsRetract = len(voltages) * [0.0], len(voltages) * [0.0]
+    voltagesRetract = np.flip(
+        np.linspace(start_V, voltages[-1], len(voltages), endpoint=True)
+    )
 
     for i, voltage in enumerate(voltagesRetract):
         z_stage.absolute_voltage(voltage)
@@ -185,11 +191,9 @@ def calibrateDistance(ctrlNormal: sfa,
     amplitudes = np.concatenate((amplitudes, amplitudesRetract))
     heights = np.concatenate((heights, heightsRetract))
 
-    df = pd.DataFrame({
-        "z_voltage": voltages,
-        "amplitude": amplitudes,
-        "height_mm": heights
-    })
+    df = pd.DataFrame(
+        {"z_voltage": voltages, "amplitude": amplitudes, "height_mm": heights}
+    )
 
     return df
 
@@ -217,11 +221,15 @@ def main() -> None:
     fShearMin = 400
     fShearMax = 500
 
-
     resolution = 0.01
 
     if findNorm:
-        freqs = np.linspace(fShearMin, fShearMax, int((fShearMax-fShearMin)/resolution+1), endpoint=True)
+        freqs = np.linspace(
+            fShearMin,
+            fShearMax,
+            int((fShearMax - fShearMin) / resolution + 1),
+            endpoint=True,
+        )
         frequencyDependence(
             ctrlNormal,
             ctrlShear,
@@ -229,21 +237,17 @@ def main() -> None:
             790,
             810,
             freqs,
-            
         )
     else:
-        freqs = np.linspace(fNormalMin, fNormalMax, int((fNormalMax-fNormalMin)/resolution+1), endpoint=True)
-        frequencyDependence(
-            ctrlNormal,
-            ctrlShear,
-            freqGen,
-            fShearMin,
-            fShearMax,
-            freqs,
-            findNorm=False
+        freqs = np.linspace(
+            fNormalMin,
+            fNormalMax,
+            int((fNormalMax - fNormalMin) / resolution + 1),
+            endpoint=True,
         )
-        
-
+        frequencyDependence(
+            ctrlNormal, ctrlShear, freqGen, fShearMin, fShearMax, freqs, findNorm=False
+        )
 
 
 if __name__ == "__main__":
