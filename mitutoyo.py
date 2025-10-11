@@ -1,5 +1,4 @@
 import serial
-from serial.tools import list_ports
 from numpy import nan
 from newsfa import find_unique_dev_by_pidvid
 
