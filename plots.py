@@ -20,7 +20,6 @@ def heatmapPlot(
     ax = sns.heatmap(data)
 
     if len(xTickLabels) != 0:
-        ax.set_xlabel("Shear Frequency (Hz)")
         if len(xTickLabels) >= xTicks:
             xStep = int(len(data[0]) / xTicks)
             xSpots = list(range(0, len(data[0]) + 1, xStep))
@@ -35,7 +34,6 @@ def heatmapPlot(
                 ax.set_xticklabels(xSpots)
 
     if len(yTickLabels) != 0:
-        ax.set_ylabel("Normal Frequency (Hz)")
         if len(yTickLabels) >= yTicks:
             yStep = int(len(data) / yTicks)
             ySpots = list(range(0, len(data) + 1, yStep))
@@ -51,6 +49,10 @@ def heatmapPlot(
 
     if title != "":
         ax.set_title(title)
+
+    
+    ax.set_xlabel("Shear Frequency (Hz)")
+    ax.set_ylabel("Normal Frequency (Hz)")
 
     fig.axes.append(ax)
     fig.savefig(fName, bbox_inches="tight")
