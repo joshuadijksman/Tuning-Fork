@@ -78,7 +78,6 @@ def linePlot(
     ax.plot(x, y)
 
     if len(xTickLabels) != 0:
-        ax.set_xlabel(xLabel)
         if len(xTickLabels) >= xTicks:
             xStep = int(len(x) / xTicks)
             xSpots = list(range(0, len(x) + 1, xStep))
@@ -93,7 +92,6 @@ def linePlot(
                 ax.set_xticklabels(xSpots)
 
     if len(yTickLabels) != 0:
-        ax.set_ylabel(yLabel)
         if len(yTickLabels) >= yTicks:
             yStep = int(len(y) / yTicks)
             ySpots = list(range(0, len(y) + 1, yStep))
@@ -109,6 +107,9 @@ def linePlot(
 
     if title != "":
         ax.set_title(title)
+    
+        ax.set_xlabel(xLabel)
+        ax.set_ylabel(yLabel)
 
     fig.axes.append(ax)
     fig.savefig(fName, bbox_inches="tight")
