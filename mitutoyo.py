@@ -50,3 +50,12 @@ class mitutoyo(object):
         a = self.answer()
 
         return a
+
+    def close(self) -> None:
+        self.ser.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        self.close()

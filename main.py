@@ -57,7 +57,17 @@ def main() -> None:
         frequencyDependence(
             ctrlNormal, ctrlShear, freqGen, fShearMin, fShearMax, freqs, findNorm=False
         )
+    
+    freqGen.set_output(1, False)
+    freqGen.set_output(2, False)
+    freqGen.close()
 
+    ctrlNormal.close()
+    ctrlShear.close()
+
+    hDev.close()
+    zStage.close()
+    
 
 if __name__ == "__main__":
     main()
