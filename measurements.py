@@ -264,7 +264,7 @@ def frequencyDependence(
     resonance = len(freqsSweep) * [0.0]
 
     file = open(file=os.path.join(filePath, "freqDepen.csv"), mode="a")
-    file.write("Time since Epoch (s), Sweep Frequency (Hz),Resonance Frequency (Hz)")
+    file.write("Time since Epoch (s), Sweep Frequency (Hz),Resonance Frequency (Hz)\n")
     for idx, fre in enumerate(freqsSweep):
         freqGen.set_frequency(channelX, fre)
         time.sleep(delay)
