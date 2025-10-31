@@ -287,9 +287,9 @@ def frequencyDependence(
         os.path.join(filePath, "freqDepen.png"),
         freqsSweep,
         resonance,
-        xLabel,
-        yLabel,
+        xLabel=xLabel,
+        yLabel=yLabel,
         title=title,
     )
-
+    
     return resonance
