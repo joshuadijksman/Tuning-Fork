@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from typing import overload
+from datetime import datetime
 
 
 def heatmapPlot(
@@ -51,25 +52,30 @@ def heatmapPlot(
     if title != "":
         ax.set_title(title)
 
-    
     ax.set_xlabel("Shear Frequency (Hz)")
     ax.set_ylabel("Normal Frequency (Hz)")
 
     fig.axes.append(ax)
     fig.savefig(fName, bbox_inches="tight")
 
+
 @overload
 def linePlot(
-    fName: str,
-    x: list[int | float] | np.ndarray,
-    y: list[int | float] | np.ndarray
+    fName: str, x: list[int | float] | np.ndarray, y: list[int | float] | np.ndarray
 ) -> None: ...
-
 @overload
 def linePlot(
     fName: str,
     x: list[int | float] | np.ndarray,
     y: list[int | float] | np.ndarray,
+    time: list[int | float] | np.ndarray,
+) -> None: ...
+@overload
+def linePlot(
+    fName: str,
+    x: list[int | float] | np.ndarray,
+    y: list[int | float] | np.ndarray,
+    *,
     title: str = "",
     xLabel: str = "",
     yLabel: str = "",
@@ -80,12 +86,14 @@ def linePlot(
     xTickLabelRound: int = 4,
     yTickLabelRound: int = 4,
     figsize: tuple[int, int] = (9, 6),
-    )-> None:...
-
+) -> None: ...
+@overload
 def linePlot(
     fName: str,
     x: list[int | float] | np.ndarray,
     y: list[int | float] | np.ndarray,
+    time: list[int | float] | np.ndarray,
+    *,
     title: str = "",
     xLabel: str = "",
     yLabel: str = "",
@@ -95,7 +103,26 @@ def linePlot(
     yTicks: int = 10,
     xTickLabelRound: int = 4,
     yTickLabelRound: int = 4,
-    figsize: tuple[int, int] = (9, 6)
+    figsize: tuple[int, int] = (9, 6),
+) -> None: ...
+
+
+def linePlot(
+    fName: str,
+    x: list[int | float] | np.ndarray,
+    y: list[int | float] | np.ndarray,
+    time: list[int | float] | np.ndarray = [],
+    *,
+    title: str = "",
+    xLabel: str = "",
+    yLabel: str = "",
+    xTickLabels: list[int | float] = [],
+    yTickLabels: list[int | float] = [],
+    xTicks: int = 10,
+    yTicks: int = 10,
+    xTickLabelRound: int = 4,
+    yTickLabelRound: int = 4,
+    figsize: tuple[int, int] = (9, 6),
 ) -> None:
     """
     Creates a line plot figure with basic settings
@@ -110,6 +137,9 @@ def linePlot(
 
     :param y: y axis data points
     :type y: list[int | float] | ndarray
+    
+    :param time: time data for x axis
+    :type time: list[int | float] | ndarray
 
     :param title: plot title
     :type title: str
@@ -123,6 +153,7 @@ def linePlot(
     fig = plt.figure(None, figsize)
     ax = fig.add_subplot()
     ax.plot(x, y)
+    ax.grid(visible=True)
 
     if len(xTickLabels) != 0:
         if len(xTickLabels) >= xTicks:
@@ -151,6 +182,17 @@ def linePlot(
                 for i, _ in enumerate(ySpots):
                     ySpots[i] = round(yTickLabels[i * step], yTickLabelRound)
                 ax.set_yticklabels(ySpots)
+    else:
+        ax.ticklabel_format(axis="y", useOffset=False)
+
+    if len(time) == len(x) and len(time)>0:
+        labels = [datetime.fromtimestamp(t).strftime("%H:%M") for t in np.interp(ax.get_xticks(), x, time)]
+        ax2 = ax.twiny()
+        ax2.set_xlim(ax.get_xlim())
+        if len(xTickLabels) >= xTicks:
+            ax2.set_xticks(ax.get_xticks())
+        ax2.set_xticklabels(labels)
+        ax2.set_xlabel("Time (HH:MM)")
 
     if title != "":
         ax.set_title(title)
