@@ -7,7 +7,7 @@ from rigol_dg1022 import RigolDG
 from plots import heatmapPlot
 
 
-def folderAvailable(path, name, n=0) -> str:
+def folderAvailable(path: os.PathLike, name: str, n=0) -> str:
     """
     Checks if folder is available, returns filepath.
 
@@ -17,6 +17,8 @@ def folderAvailable(path, name, n=0) -> str:
         if os.path.exists(os.path.join(path, name)):
             return folderAvailable(path, name, n=n + 1)
         else:
+            if not os.path.exists(path):
+                os.mkdir(path)
             return os.path.join(path, name)
     else:
         if os.path.exists(os.path.join(path, name + f"_{n}")):
