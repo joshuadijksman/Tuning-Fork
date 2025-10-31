@@ -62,8 +62,8 @@ def linePlot(
     fName: str,
     x: list[int | float] | np.ndarray,
     y: list[int | float] | np.ndarray,
-    xLabel="Shear Frequency (Hz)",
-    yLabel="Normal Frequency (Hz)",
+    xLabel="",
+    yLabel="",
     xTickLabels: list[int | float] = [],
     yTickLabels: list[int | float] = [],
     title: str = "",
@@ -107,8 +107,9 @@ def linePlot(
 
     if title != "":
         ax.set_title(title)
-    
+    if xLabel != "":
         ax.set_xlabel(xLabel)
+    if yLabel != "":
         ax.set_ylabel(yLabel)
 
     fig.axes.append(ax)
