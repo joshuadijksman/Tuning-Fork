@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from typing import overload
 
 
 def heatmapPlot(
@@ -57,22 +58,68 @@ def heatmapPlot(
     fig.axes.append(ax)
     fig.savefig(fName, bbox_inches="tight")
 
+@overload
+def linePlot(
+    fName: str,
+    x: list[int | float] | np.ndarray,
+    y: list[int | float] | np.ndarray
+) -> None: ...
 
+@overload
 def linePlot(
     fName: str,
     x: list[int | float] | np.ndarray,
     y: list[int | float] | np.ndarray,
-    xLabel="",
-    yLabel="",
+    title: str = "",
+    xLabel: str = "",
+    yLabel: str = "",
     xTickLabels: list[int | float] = [],
     yTickLabels: list[int | float] = [],
-    title: str = "",
     xTicks: int = 10,
     yTicks: int = 10,
     xTickLabelRound: int = 4,
     yTickLabelRound: int = 4,
     figsize: tuple[int, int] = (9, 6),
-):
+    )-> None:...
+
+def linePlot(
+    fName: str,
+    x: list[int | float] | np.ndarray,
+    y: list[int | float] | np.ndarray,
+    title: str = "",
+    xLabel: str = "",
+    yLabel: str = "",
+    xTickLabels: list[int | float] = [],
+    yTickLabels: list[int | float] = [],
+    xTicks: int = 10,
+    yTicks: int = 10,
+    xTickLabelRound: int = 4,
+    yTickLabelRound: int = 4,
+    figsize: tuple[int, int] = (9, 6)
+) -> None:
+    """
+    Creates a line plot figure with basic settings
+
+    TODO add params
+
+    :param fName: filename for output
+    :type fName: str
+
+    :param x: x axis data points
+    :type x: list[int | float] | ndarray
+
+    :param y: y axis data points
+    :type y: list[int | float] | ndarray
+
+    :param title: plot title
+    :type title: str
+
+    :param xLabel: x label text
+    :type xLabel: str
+
+    :param yLabel: y label text
+    :type yLabel: str
+    """
     fig = plt.figure(None, figsize)
     ax = fig.add_subplot()
     ax.plot(x, y)
