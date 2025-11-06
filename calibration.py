@@ -17,7 +17,6 @@ def calibrateAir(
     freqNormalRange: list[int | float] = [789.5, 794.5],
     freqShearRange: list[int | float] = [452.6, 457.6],
     delay: int | float = 0.75,
-    sampleDrops: int = 3,
     denseHalfwidth=3.0,
     denseStep=0.1,
     fitMaxFev=5000,
@@ -49,7 +48,7 @@ def calibrateAir(
     phasesDenseShear = np.empty_like(freqsDenseShear)
 
     for i, f in enumerate(freqsDenseNormal):
-        ctrlNormal.setFrequency(f)
+        freqGen.set_frequency(1, f)
         time.sleep(delay)
         ampsDenseNormal[i] = ctrlNormal.readAmplitude()
         phasesDenseNormal[i] = ctrlNormal.readPhase()
@@ -58,7 +57,7 @@ def calibrateAir(
         )
 
     for i, f in enumerate(freqsDenseShear):
-        ctrlShear.setFrequency(f)
+        freqGen.set_frequency(2, f)
         time.sleep(delay)
         ampsDenseShear[i] = ctrlShear.readAmplitude()
         phasesDenseShear[i] = ctrlShear.readPhase()
