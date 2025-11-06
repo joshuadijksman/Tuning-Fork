@@ -11,8 +11,18 @@ from rigol_dg1022 import RigolDG
 from PLL import PLL1D, PLL2D, PLL2x1D
 from frequencySweep2D import folderAvailable
 from plots import linePlot
+from typing import overload
 
 
+@overload
+def viscosity1D(
+    ctrl: sfa,
+    freqGen: RigolDG,
+    zStage: pi_e_625,
+    height_dev: mitutoyo,
+    fRes0: float,
+): ...
+@overload
 def viscosity1D(
     ctrl: sfa,
     freqGen: RigolDG,
@@ -24,10 +34,41 @@ def viscosity1D(
     step_V=1.0,
     pll_tol=0.1,
     pll_maxiter=25,
-    Kp=1 / (4 * np.pi),
-    pll_delay=1.5,
+    Kp=1 / np.pi,
+    pll_delay=1,
     min_amp=0.0003,
+    **kwargs
+): ...
+    
+def viscosity1D(
+    ctrl: sfa,
+    freqGen: RigolDG,
+    zStage: pi_e_625,
+    height_dev: mitutoyo,
+    fRes0: float,
+    start_V=10.0,
+    end_V=110.0,
+    step_V=1.0,
+    pll_tol=0.1,
+    pll_maxiter=25,
+    Kp=1 / np.pi,
+    pll_delay=1,
+    min_amp=0.0003,
+    **kwargs
 ):
+    
+    if "filePath" in kwargs:
+        filePath: str = kwargs.pop("filePath")
+        if not os.path.exists(filePath):
+            os.mkdir(filePath)
+    else:
+        filePath = folderAvailable(
+            path=os.path.abspath("./Data"), name=time.strftime("%Y-%m-%d_%H-%M")
+        )
+        os.mkdir(filePath)
+
+    open(file=os.path.join(filePath, "viscosity1D.csv"), mode="x").close()
+
     current_f = fRes0
 
     # APPROACH SWEEP
@@ -35,6 +76,10 @@ def viscosity1D(
     contact_idx = None
 
     rows = len(z_values) * [{}]
+
+    file = open(file=os.path.join(filePath, "viscosity1D.csv"), mode="a")
+    file.write("z_voltage_cmd (V),z_voltage_read (V),height (mm),f_res (Hz),amplitude (V),phase (deg)\n")
+    file.flush()
 
     for idx, zV in enumerate(z_values):
         print(f"\n[MEAS] Approach Z={zV:.1f} V")
@@ -47,6 +92,8 @@ def viscosity1D(
 
         if np.isfinite(h) and h > 0.0:
             print(f"[MEAS] Contact detected at Z={zV:.1f} V (h={h:.3f} mm)")
+            file.write(f"{zV},{zV_read},{h},{current_f},{np.nan},{np.nan}\n")
+            file.flush()
             rows[idx] = {
                 "z_voltage_cmd": zV,
                 "z_voltage_read": zV_read,
@@ -67,6 +114,8 @@ def viscosity1D(
             print(
                 f"[MEAS] A={A:.6f} < {min_amp:.3f}; skipping PLL & phase at Z={zV:.1f} V"
             )
+            file.write(f"{zV},{zV_read},{h},{current_f},{A},{np.nan}\n")
+            file.flush()
             rows[idx] = {
                 "z_voltage_cmd": zV,
                 "z_voltage_read": zV_read,
@@ -91,6 +140,8 @@ def viscosity1D(
         P = ctrl.readPhase()
 
         print(f"[MEAS] h={h:.3f} mm, A={A:.6f}, phase={P:.2f}")
+        file.write(f"{zV},{zV_read},{h},{current_f},{A},{P}\n")
+        file.flush()
         rows[idx] = {
             "z_voltage_cmd": zV,
             "z_voltage_read": zV_read,
@@ -102,7 +153,7 @@ def viscosity1D(
 
     # RETRACT SWEEP (back to start_V)
     if contact_idx is not None:
-        rows2 = len(z_values[: contact_idx + 1][::-1]) * []
+        rows2 = len(z_values[: contact_idx + 1][::-1]) * [{}]
         for idx, zV in enumerate(z_values[: contact_idx + 1][::-1]):
             print(f"\n[MEAS] Retract Z={zV:.1f} V")
             zStage.absolute_voltage(zV)
@@ -114,6 +165,8 @@ def viscosity1D(
 
             if np.isfinite(h) and h > 0.0:
                 print(f"[MEAS] Contact (retract) at Z={zV:.1f} V (h={h:.3f} mm)")
+                file.write(f"{zV},{zV_read},{h},{current_f},{np.nan},{np.nan}\n")
+                file.flush()
                 rows2[idx] = {
                     "z_voltage_cmd": zV,
                     "z_voltage_read": zV_read,
@@ -132,6 +185,8 @@ def viscosity1D(
                 print(
                     f"[MEAS] A={A:.6f} < {min_amp:.3f}; skipping PLL & phase at Z={zV:.1f} V"
                 )
+                file.write(f"{zV},{zV_read},{h},{current_f},{A},{np.nan}\n")
+                file.flush()
                 rows2[idx] = {
                     "z_voltage_cmd": zV,
                     "z_voltage_read": zV_read,
@@ -157,6 +212,8 @@ def viscosity1D(
             P = ctrl.readPhase()
 
             print(f"[MEAS] h={h:.3f} mm, A={A:.6f}, phase={P:.2f}")
+            file.write(f"{zV},{zV_read},{h},{current_f},{A},{P}\n")
+            file.flush()
             rows2[idx] = {
                 "z_voltage_cmd": zV,
                 "z_voltage_read": zV_read,
@@ -165,19 +222,18 @@ def viscosity1D(
                 "amplitude(V)": A,
                 "phase(deg)": P,
             }
-
+        rows.append(rows2)
+    
     # finally reset Z-stage home
     zStage.absolute_voltage(start_V)
     print(f"[MEAS] Z-stage reset to {start_V} V")
 
-    rows.append(rows2)
-
     # save & plot as before…
     dfm = pd.DataFrame(rows)
-    ts = time.strftime("%Y%m%d_%H%M%S")
-    filename = f"viscosity_with_PLL_{ts}.csv"
-    dfm.to_csv(filename, index=False)
-    print(f"[MEAS] Saved data to {filename}")
+    # ts = time.strftime("%Y%m%d_%H%M%S")
+    # filename = f"viscosity_with_PLL_{ts}.csv"
+    # dfm.to_csv(filename, index=False)
+    # print(f"[MEAS] Saved data to {filename}")
 
     for col_x, col_y, xlabel, ylabel, title, fn in [
         (
@@ -204,16 +260,28 @@ def viscosity1D(
             "Freq vs Height",
             "freq_vs_height",
         ),
-    ]:
-        plt.figure(figsize=(6, 4))
-        plt.plot(dfm[col_x], dfm[col_y], "o-")
-        plt.xlabel(xlabel)
-        plt.ylabel(ylabel)
-        plt.title(title)
-        plotfile = f"{fn}_{ts}.png"
-        plt.savefig(plotfile, dpi=300)
-        plt.close()
-        print(f"[MEAS] Saved plot {plotfile}")
+    ]:  
+        linePlot(
+            fName=os.path.join(filePath, f"{fn}.png"),
+            x=list(dfm[col_x]), 
+            y=list(dfm[col_y]),
+            xLabel=xlabel,
+            yLabel=ylabel,
+            title=title,
+            dpi=300,
+            figsize=(6,4),
+            linestyle="o-"
+            )
+        
+        # plt.figure(figsize=(6, 4))
+        # plt.plot(dfm[col_x], dfm[col_y], "o-")
+        # plt.xlabel(xlabel)
+        # plt.ylabel(ylabel)
+        # plt.title(title)
+        # plotfile = f"{fn}_{ts}.png"
+        # plt.savefig(plotfile, dpi=300)
+        # plt.close()
+        # print(f"[MEAS] Saved plot {plotfile}")
 
     return rows
 

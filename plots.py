@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from typing import overload
+from os import PathLike
 from datetime import datetime
 
 
@@ -61,18 +62,20 @@ def heatmapPlot(
 
 @overload
 def linePlot(
-    fName: str, x: list[int | float] | np.ndarray, y: list[int | float] | np.ndarray
+    fName: str | PathLike,
+    x: list[int | float] | np.ndarray,
+    y: list[int | float] | np.ndarray
 ) -> None: ...
 @overload
 def linePlot(
-    fName: str,
+    fName: str | PathLike,
     x: list[int | float] | np.ndarray,
     y: list[int | float] | np.ndarray,
     time: list[int | float] | np.ndarray,
 ) -> None: ...
 @overload
 def linePlot(
-    fName: str,
+    fName: str | PathLike,
     x: list[int | float] | np.ndarray,
     y: list[int | float] | np.ndarray,
     *,
@@ -86,10 +89,13 @@ def linePlot(
     xTickLabelRound: int = 4,
     yTickLabelRound: int = 4,
     figsize: tuple[int, int] = (9, 6),
+    linestyle: str = "-",
+    transparent: bool = False,
+    dpi: float | None = None
 ) -> None: ...
 @overload
 def linePlot(
-    fName: str,
+    fName: str | PathLike,
     x: list[int | float] | np.ndarray,
     y: list[int | float] | np.ndarray,
     time: list[int | float] | np.ndarray,
@@ -104,11 +110,14 @@ def linePlot(
     xTickLabelRound: int = 4,
     yTickLabelRound: int = 4,
     figsize: tuple[int, int] = (9, 6),
+    linestyle: str = "-",
+    transparent: bool = False,
+    dpi: float | None = None
 ) -> None: ...
 
 
 def linePlot(
-    fName: str,
+    fName: str | PathLike,
     x: list[int | float] | np.ndarray,
     y: list[int | float] | np.ndarray,
     time: list[int | float] | np.ndarray = [],
@@ -123,6 +132,7 @@ def linePlot(
     xTickLabelRound: int = 4,
     yTickLabelRound: int = 4,
     figsize: tuple[int, int] = (9, 6),
+    **kwargs
 ) -> None:
     """
     Creates a line plot figure with basic settings
@@ -150,9 +160,9 @@ def linePlot(
     :param yLabel: y label text
     :type yLabel: str
     """
-    fig = plt.figure(None, figsize)
+    fig = plt.figure(None, figsize, dpi=kwargs.get("dpi", None))
     ax = fig.add_subplot()
-    ax.plot(x, y)
+    ax.plot(x, y, linestyle=kwargs.get("linestyle", "-"))
     ax.grid(visible=True)
 
     if len(xTickLabels) != 0:
@@ -204,4 +214,4 @@ def linePlot(
         ax2.set_xlabel("Time (HH:MM)")
         fig.axes.append(ax2)
 
-    fig.savefig(fName, bbox_inches="tight")
+    fig.savefig(fName, bbox_inches="tight", transparent=kwargs.get("transparent", False))
