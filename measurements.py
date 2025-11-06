@@ -1,7 +1,5 @@
 import numpy as np
 import time
-import pandas as pd
-import matplotlib.pyplot as plt
 import os
 
 from newsfa import sfa
@@ -229,11 +227,6 @@ def viscosity1D(
     print(f"[MEAS] Z-stage reset to {start_V} V")
 
     # save & plot as before…
-    dfm = pd.DataFrame(rows)
-    # ts = time.strftime("%Y%m%d_%H%M%S")
-    # filename = f"viscosity_with_PLL_{ts}.csv"
-    # dfm.to_csv(filename, index=False)
-    # print(f"[MEAS] Saved data to {filename}")
 
     for col_x, col_y, xlabel, ylabel, title, fn in [
         (
@@ -263,8 +256,8 @@ def viscosity1D(
     ]:  
         linePlot(
             fName=os.path.join(filePath, f"{fn}.png"),
-            x=list(dfm[col_x]), 
-            y=list(dfm[col_y]),
+            x=[item.get(col_x) for item in rows], 
+            y=[item.get(col_y) for item in rows],
             xLabel=xlabel,
             yLabel=ylabel,
             title=title,
@@ -272,17 +265,6 @@ def viscosity1D(
             figsize=(6,4),
             linestyle="o-"
             )
-        
-        # plt.figure(figsize=(6, 4))
-        # plt.plot(dfm[col_x], dfm[col_y], "o-")
-        # plt.xlabel(xlabel)
-        # plt.ylabel(ylabel)
-        # plt.title(title)
-        # plotfile = f"{fn}_{ts}.png"
-        # plt.savefig(plotfile, dpi=300)
-        # plt.close()
-        # print(f"[MEAS] Saved plot {plotfile}")
-
     return rows
 
 
