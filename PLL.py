@@ -77,8 +77,10 @@ def PLL1D(
                 f_interp = fPrev - phasePrev * (fPrev - fRes) / (phasePrev - phaseDeg)
                 print(f"  → Interpolated f_res = {f_interp:.6f} Hz")
                 return [f_interp, ctrl.readAmplitude(), phaseDeg]
+            else:
+                print(f"  → In tolerenace, f_res = {fRes:.6f} Hz")
+                return [fRes, ctrl.readAmplitude(), phaseDeg]
 
-        # TODO: REVIEW THIS PART, FROM OLD "NEW" CODE. SUSPICION: WILL ALWAYS DEFAULT WHEN PHASE IS NEGATIVE, INC -180
         if phasePrev * phaseDeg < 0:
             f_interp = fPrev - phasePrev * (fRes - fPrev) / (phaseDeg - phasePrev)
             print(f"  → Sign change, interpolated f_res = {f_interp:.6f} Hz")
