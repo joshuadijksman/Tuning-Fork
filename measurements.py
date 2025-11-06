@@ -222,7 +222,7 @@ def viscosity1D(
                 "amplitude(V)": A,
                 "phase(deg)": P,
             }
-        rows.append(rows2)
+        rows += rows2
     
     # finally reset Z-stage home
     zStage.absolute_voltage(start_V)
