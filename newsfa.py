@@ -13,10 +13,10 @@ from serial.tools.list_ports_common import ListPortInfo
 from numpy import nan
 
 
-def find_unique_dev_by_pidvid(vid: int, pid: int) -> ListPortInfo | None:
+def find_unique_dev_by_pidvid(pid: int, vid: int) -> ListPortInfo | None:
     """Find port by Vendor ID and Product ID"""
     found_devices = list(
-        filter(lambda p: p.vid == vid and p.pid == pid, list_ports.comports())
+        filter(lambda p: p.pid == pid and p.vid == vid, list_ports.comports())
     )
     return found_devices[0] if len(found_devices) == 1 else None
 

@@ -6,7 +6,7 @@ from newsfa import find_unique_dev_by_pidvid
 class mitutoyo(object):
     def __init__(self, port="") -> None:
         if port == "":
-            port = str(find_unique_dev_by_pidvid(0x4001, 0x0FE7)).split(" ")[0]
+            port = str(find_unique_dev_by_pidvid(pid=0x4001, vid=0x0FE7)).split(" ")[0]
             print("Using Mitutoyo port:", port)
         self.ser = serial.Serial(port=port, baudrate=115200)
 
