@@ -262,8 +262,7 @@ def viscosity1D(
             yLabel=ylabel,
             title=title,
             dpi=300,
-            figsize=(6,4),
-            linestyle="o-"
+            figsize=(6,4)
             )
     return rows
 
