@@ -34,7 +34,7 @@ def viscosity1D(
     z_values = np.arange(start_V, end_V + step_V, step_V)
     contact_idx = None
 
-    rows = len(z_values) * []
+    rows = len(z_values) * [{}]
 
     for idx, zV in enumerate(z_values):
         print(f"\n[MEAS] Approach Z={zV:.1f} V")
