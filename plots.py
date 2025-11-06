@@ -185,15 +185,6 @@ def linePlot(
     else:
         ax.ticklabel_format(axis="y", useOffset=False)
 
-    if len(time) == len(x) and len(time)>0:
-        labels = [datetime.fromtimestamp(t).strftime("%H:%M") for t in np.interp(ax.get_xticks(), x, time)]
-        ax2 = ax.twiny()
-        ax2.set_xlim(ax.get_xlim())
-        if len(xTickLabels) >= xTicks:
-            ax2.set_xticks(ax.get_xticks())
-        ax2.set_xticklabels(labels)
-        ax2.set_xlabel("Time (HH:MM)")
-
     if title != "":
         ax.set_title(title)
     if xLabel != "":
@@ -202,4 +193,15 @@ def linePlot(
         ax.set_ylabel(yLabel)
 
     fig.axes.append(ax)
+
+    if len(time) == len(x) and len(time)>0:
+        labels = [datetime.fromtimestamp(t).strftime("%H:%M") for t in np.interp(ax.get_xticks(), x, time)]
+        ax2 = ax.twiny()
+        ax2.set_xlim(ax.get_xlim())
+        if len(xTickLabels) >= xTicks:
+            ax2.set_xticks(ax.get_xticks())
+        ax2.set_xticklabels(labels)
+        ax2.set_xlabel("Time (HH:MM)")
+        fig.axes.append(ax2)
+
     fig.savefig(fName, bbox_inches="tight")
