@@ -30,7 +30,7 @@ class pi_e_625:
         self.pidevice.SVA(self.target, voltage)
 
     def request_voltage(self):
-        return self.pidevice.qVOL(self.target)
+        return self.pidevice.qVOL(self.target)["A"]
 
     def thread_for_voltage(self, start, end, step, waittime):
         v = start
