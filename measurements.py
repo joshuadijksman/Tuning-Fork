@@ -124,7 +124,7 @@ def viscosity1D(
             }
             continue
 
-        current_f, _, _ = PLL1D(
+        current_f, A, P = PLL1D(
             ctrl,
             freqGen,
             current_f - 1,
@@ -134,8 +134,6 @@ def viscosity1D(
             Kp=Kp,
             delay=pll_delay,
         )
-
-        P = ctrl.readPhase()
 
         print(f"[MEAS] h={h:.3f} mm, A={A:.6f}, phase={P:.2f}")
         file.write(f"{zV},{zV_read},{h},{current_f},{A},{P}\n")
