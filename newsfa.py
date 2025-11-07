@@ -153,8 +153,10 @@ class sfa:
         | 26    | 1 V/\u00b5A    |
 
         """
-        if index < 0 or index > 26:
-            raise IndexError
+        if index < 0:
+            raise IndexError(f"Index {index} is too low! (Min 0)")
+        elif index > 26:
+            raise IndexError(f"Index {index} is too high! (Max 26)")
         command = f"SENS {index}"
         self._write(command)
 
@@ -191,8 +193,10 @@ class sfa:
         | 18    | 10 ks         |
         | 19    | 30 ks         |
         """
-        if index < 0 or index > 19:
-            raise IndexError
+        if index < 0:
+            raise IndexError(f"Index {index} is too low! (Min 0)")
+        elif index > 19:
+            raise IndexError(f"Index {index} is too high! (Max 19)")
         table = [10e-6, 30e-6, 100e-6, 300e-6, 1e-3, 3e-3, 10e-3, 30e-3, 100e-3, 300e-3, 1e0, 3e0, 10e0, 30e0, 100e0, 300e0, 1e3, 3e3, 10e3, 30e3]
         freq = self.readFrequency()
         if table[index]/freq > 1:
