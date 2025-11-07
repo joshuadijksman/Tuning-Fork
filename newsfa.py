@@ -111,6 +111,95 @@ class sfa:
             pha = nan
 
         return pha
+    
+    def readSensitivity(self):
+        command = "SENS?"
+        return self._write_read(command)
+
+    def setSensitivity(self, index: int) -> None:
+        """
+        Sets lock in amplifiers sensitivity
+
+        Boosts Amplitude if too low.
+
+        | index | sensitivity    |
+        |-------|----------------|
+        | 0     | 2 nV/fA        |
+        | 1     | 5 nV/fA        |
+        | 2     | 10 nV/fA       |
+        | 3     | 20 nV/fA       |
+        | 4     | 50 nV/fA       |
+        | 5     | 100 nV/fA      |
+        | 6     | 200 nV/fA      |
+        | 7     | 500 nV/fA      |
+        | 8     | 1 \u00b5V/fA   |
+        | 9     | 2 \u00b5V/fA   |
+        | 10    | 5 \u00b5V/fA   |
+        | 11    | 10 \u00b5V/fA  |
+        | 12    | 20 \u00b5V/fA  |
+        | 13    | 50 \u00b5V/fA  |
+        | 14    | 100 \u00b5V/fA |
+        | 15    | 200 \u00b5V/fA |
+        | 16    | 500 \u00b5V/fA |
+        | 17    | 1 mV/nA        |
+        | 18    | 2 mV/nA        |
+        | 19    | 5 mV/nA        |
+        | 20    | 10 mV/nA       |
+        | 21    | 20 mV/nA       |
+        | 22    | 50 mV/nA       |
+        | 23    | 100 mV/nA      |
+        | 24    | 200 mV/nA      |
+        | 25    | 500 mV/nA      |
+        | 26    | 1 V/\u00b5A    |
+
+        """
+        if index < 0 or index > 26:
+            raise IndexError
+        command = f"SENS {index}"
+        self._write(command)
+
+    def readTimeConstant(self):
+        command = "OFLT?"
+        return self._write_read(command)
+
+    def setTimeConstant(self, index: int) -> None:
+        """
+        Sets the time constant
+
+        Time constant sets the duration that the Lock-In Amplifier watches the wave. Make sure `time constant > 1/freq`.
+
+        | index | time constant |
+        |-------|---------------|
+        | 0     | 10 \u00b5s    |
+        | 1     | 30 \u00b5s    |
+        | 2     | 100 \u00b5s   |
+        | 3     | 300 \u00b5s   |
+        | 4     | 1 ms          |
+        | 5     | 3 ms          |
+        | 6     | 10 ms         |
+        | 7     | 30 ms         |
+        | 8     | 100 ms        |
+        | 9     | 300 ms        |
+        | 10    | 1 s           |
+        | 11    | 3 s           |
+        | 12    | 10 s          |
+        | 13    | 30 s          |
+        | 14    | 100 s         |
+        | 15    | 300 s         |
+        | 16    | 1 ks          |
+        | 17    | 3 ks          |
+        | 18    | 10 ks         |
+        | 19    | 30 ks         |
+        """
+        if index < 0 or index > 19:
+            raise IndexError
+        table = [10e-6, 30e-6, 100e-6, 300e-6, 1e-3, 3e-3, 10e-3, 30e-3, 100e-3, 300e-3, 1e0, 3e0, 10e0, 30e0, 100e0, 300e0, 1e3, 3e3, 10e3, 30e3]
+        freq = self.readFrequency()
+        if table[index]/freq > 1:
+            command = f"OFLT {index}"
+            self._write(command)
+        else:
+            raise ValueError(f"Frequency of '{freq}' is too low for time constant '{table[index]}'!")
 
     def close(self) -> None:
         self.ser.close()
