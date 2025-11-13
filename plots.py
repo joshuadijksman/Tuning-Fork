@@ -240,13 +240,20 @@ def linePlot(
     fig.axes.append(ax)
 
     if len(time) == len(x) and len(time)>0:
-        labels = [datetime.fromtimestamp(t).strftime("%H:%M (%d/%m)") for t in np.interp(ax.get_xticks(), x, time)]
         ax2 = ax.twiny()
         ax2.set_xlim(ax.get_xlim())
         if xTicks != 0:
             ax2.set_xticks(ax.get_xticks())
-        ax2.set_xticklabels(labels)
-        ax2.set_xlabel("Time (HH:MM (dd/mm))")
+
+        if datetime.fromtimestamp(time[-1]).day == datetime.fromtimestamp(time[0]).day:
+            labels = [datetime.fromtimestamp(t).strftime("%H:%M") for t in np.interp(ax.get_xticks(), x, time)]
+            ax2.set_xticklabels(labels)
+            ax2.set_xlabel("Time (HH:MM)")
+        else:
+            labels = [datetime.fromtimestamp(t).strftime("%H:%M (%d/%m)") for t in np.interp(ax.get_xticks(), x, time)]
+            ax2.set_xticklabels(labels)
+            ax2.set_xlabel("Time (HH:MM (dd/mm))")
+
         ax2.tick_params('x', rotation=30)
         fig.axes.append(ax2)
 
