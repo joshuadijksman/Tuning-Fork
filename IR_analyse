@@ -1,0 +1,83 @@
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+from glob import glob
+
+# -------------------------
+# Instellingen
+# -------------------------
+map_pad = r".\Reeks1"  # map met PNG's
+bestandspatroon = "*.png" # type bestanden
+Tmin = 15   # minimale temperatuur voor analyse
+Tmax = 35   # maximale temperatuur voor analyse
+dt = 60.0   # tijd tussen frames in seconden 
+
+# -------------------------
+# Functie om FLIR 16-bit PNG in te lezen en naar °C om te zetten
+# -------------------------
+def lees_flir_png(pad):
+    img = cv2.imread(pad, cv2.IMREAD_UNCHANGED)
+    if img is None:
+        raise FileNotFoundError(f"Kan bestand niet openen: {pad}")
+    # Omzetten: pixelwaarde /100 = Kelvin -> -273.15 = °C
+    return img / 100.0 - 273.15
+
+# -------------------------
+# Lijst van bestanden
+# -------------------------
+bestanden = sorted(glob(os.path.join(map_pad, bestandspatroon)))
+if not bestanden:
+    raise FileNotFoundError(f"Geen bestanden gevonden in {map_pad}")
+
+# -------------------------
+# Eerste beeld tonen voor ROI selectie
+# -------------------------
+eerste = lees_flir_png(bestanden[0])
+
+# Maak een 8-bit versie voor weergave van de IR-data
+beeld8 = np.clip((eerste - Tmin) / (Tmax - Tmin), 0, 1)
+r = cv2.selectROI("Selecteer gebied om te volgen", beeld8, showCrosshair=True)
+cv2.destroyAllWindows()
+
+x, y, w, h = map(int, r)
+if w == 0 or h == 0:
+    w, h = 1, 1
+
+# -------------------------
+# Temperatuur meten in het geselecteerde gebied voor alle frames
+# -------------------------
+gemiddelden = []
+
+for pad in bestanden:
+    img = lees_flir_png(pad)
+    regio = img[y:y+h, x:x+w]
+    
+    # Alleen pixels binnen Tmin en Tmax meenemen
+    mask = (regio >= Tmin) & (regio <= Tmax)
+    if np.any(mask):
+        mean_temp = np.mean(regio[mask])
+    else:
+        mean_temp = np.nan
+    
+    gemiddelden.append(mean_temp)
+
+gemiddelden = np.array(gemiddelden)
+
+# -------------------------
+# Tijd voor x-as
+# -------------------------
+frames = np.arange(len(bestanden))
+tijd = frames * dt  # tijd in seconden
+
+# -------------------------
+# Plot temperatuurverloop
+# -------------------------
+plt.figure(figsize=(8, 4))
+plt.plot(tijd, gemiddelden, marker='.')
+plt.xlabel("Tijd (s)")
+plt.ylabel("Gemiddelde temperatuur (°C)")
+plt.title("Temperatuurverloop in geselecteerd gebied")
+plt.grid(True)
+plt.ylim(Tmin, Tmax)
+plt.show()
