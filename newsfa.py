@@ -87,7 +87,7 @@ class sfa:
         """
         Read amplitude
 
-        Returns amplite  or NaN on bad read.
+        Returns amplitude or NaN on bad read.
         """
         rawA = self._write_read("outp? 3")
         try:
