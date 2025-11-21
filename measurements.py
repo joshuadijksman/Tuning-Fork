@@ -27,17 +27,19 @@ def viscosity1D(
     zStage: pi_e_625,
     height_dev: mitutoyo,
     fRes0: float,
-    start_V=10.0,
-    end_V=110.0,
-    step_V=1.0,
-    pll_tol=0.1,
-    pll_maxiter=25,
-    Kp=1 / np.pi,
-    pll_delay=1,
-    min_amp=0.0003,
-    **kwargs
+    /,
+    start_V: float,
+    end_V: float,
+    step_V: float,
+    pll_tol: float,
+    pll_maxiter: int,
+    Kp: float,
+    pll_delay: float,
+    min_amp: float,
+    **kwargs,
 ): ...
-    
+
+
 def viscosity1D(
     ctrl: sfa,
     freqGen: RigolDG,
@@ -50,11 +52,10 @@ def viscosity1D(
     pll_tol=0.1,
     pll_maxiter=25,
     Kp=1 / np.pi,
-    pll_delay=1,
+    pll_delay=1.0,
     min_amp=0.0003,
-    **kwargs
+    **kwargs,
 ):
-    
     if "filePath" in kwargs:
         filePath: str = kwargs.pop("filePath")
         if not os.path.exists(filePath):
@@ -76,7 +77,9 @@ def viscosity1D(
     rows = len(z_values) * [{}]
 
     file = open(file=os.path.join(filePath, "viscosity1D.csv"), mode="a")
-    file.write("z_voltage_cmd (V),z_voltage_read (V),height (mm),f_res (Hz),amplitude (V),phase (deg)\n")
+    file.write(
+        "z_voltage_cmd (V),z_voltage_read (V),height (mm),f_res (Hz),amplitude (V),phase (deg)\n"
+    )
     file.flush()
 
     for idx, zV in enumerate(z_values):
@@ -219,7 +222,7 @@ def viscosity1D(
                 "phase(deg)": P,
             }
         rows += rows2
-    
+
     # finally reset Z-stage home
     zStage.absolute_voltage(start_V)
     print(f"[MEAS] Z-stage reset to {start_V} V")
@@ -251,17 +254,17 @@ def viscosity1D(
             "Freq vs Height",
             "freq_vs_height",
         ),
-    ]:  
+    ]:
         linePlot(
             fName=os.path.join(filePath, f"{fn}.png"),
-            x=[item.get(col_x) for item in rows], 
+            x=[item.get(col_x) for item in rows],
             y=[item.get(col_y) for item in rows],
             xLabel=xlabel,
             yLabel=ylabel,
             title=title,
             dpi=300,
-            figsize=(6,4)
-            )
+            figsize=(6, 4),
+        )
     return rows
 
 
@@ -338,5 +341,5 @@ def frequencyDependence(
         yLabel=yLabel,
         title=title,
     )
-    
+
     return resonance
