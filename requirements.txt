@@ -1,0 +1,9 @@
+numpy
+pandas
+matplotlib
+scipy
+pyserial
+pipython
+seaborn
+pyvisa
+rigol-dg1022
