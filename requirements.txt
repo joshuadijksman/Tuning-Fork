@@ -7,3 +7,5 @@ pipython
 seaborn
 pyvisa
 rigol-dg1022
+pyside6
+pyqtgraph
