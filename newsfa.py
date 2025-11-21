@@ -111,7 +111,7 @@ class sfa:
             pha = nan
 
         return pha
-    
+
     def readSensitivity(self):
         command = "SENS?"
         return self._write_read(command)
@@ -197,13 +197,52 @@ class sfa:
             raise IndexError(f"Index {index} is too low! (Min 0)")
         elif index > 19:
             raise IndexError(f"Index {index} is too high! (Max 19)")
-        table = [10e-6, 30e-6, 100e-6, 300e-6, 1e-3, 3e-3, 10e-3, 30e-3, 100e-3, 300e-3, 1e0, 3e0, 10e0, 30e0, 100e0, 300e0, 1e3, 3e3, 10e3, 30e3]
+        table = [
+            10e-6,
+            30e-6,
+            100e-6,
+            300e-6,
+            1e-3,
+            3e-3,
+            10e-3,
+            30e-3,
+            100e-3,
+            300e-3,
+            1e0,
+            3e0,
+            10e0,
+            30e0,
+            100e0,
+            300e0,
+            1e3,
+            3e3,
+            10e3,
+            30e3,
+        ]
         freq = self.readFrequency()
-        if table[index]/freq > 1:
+        if table[index] / freq > 1:
             command = f"OFLT {index}"
             self._write(command)
         else:
-            raise ValueError(f"Frequency of '{freq}' is too low for time constant '{table[index]}'!")
+            raise ValueError(
+                f"Frequency of '{freq}' is too low for time constant '{table[index]}'!"
+            )
+
+    def frequencyReferenceSource(self, internal=True):
+        """
+        Sets reference source to use.
+
+        If set to internal, the SR830 will use the internal oscillator for both Sine Out and the reference wave.
+        Setting internal to `False` will require an external oscillator to be connected to `Ref In`.
+
+        :param internal: Use internal reference source, `False` will use external.
+        :type internal: bool
+        """
+        if internal:
+            command = "FMOD 1"
+        else:
+            command = "FMOD 0"
+        self._write(command)
 
     def close(self) -> None:
         self.ser.close()
