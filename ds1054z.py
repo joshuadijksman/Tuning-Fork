@@ -443,37 +443,41 @@ class DS1054Z:
             self.logger.info("Sent ACQuire_AVERages?")
             return ret
     
-    def ACQuire_MDEPth(self) -> None:
+    def ACQuire_MDEPth(self, mdep: str | None = None) -> str | None:
         """
         Set or query the memory depth of the oscilloscope (number of waveform points
-        stored in a single trigger sample). Default unit is points (pts).
+        that can be stored in a single trigger sample). Default unit is points (pts).
 
         For analog channels:
-            - Single channel enabled:
-                {AUTO | 12000 | 120000 | 1200000 | 12000000 | 24000000}
-            - Dual channels enabled:
-                {AUTO | 6000 | 60000 | 600000 | 6000000 | 12000000}
-            - Three/four channels enabled:
-                {AUTO | 3000 | 30000 | 300000 | 3000000 | 6000000}
+            - Single channel enabled: {AUTO | 12000 | 120000 | 1200000 | 12000000 | 24000000}
+            - Dual channels enabled: {AUTO | 6000 | 60000 | 600000 | 6000000 | 12000000}
+            - Three/four channels enabled: {AUTO | 3000 | 30000 | 300000 | 3000000 | 6000000}
 
         For digital channels:
-            - 8 channels enabled:
-                {AUTO | 12000 | 120000 | 1200000 | 12000000 | 24000000}
-            - 16 channels enabled:
-                {AUTO | 6000 | 60000 | 600000 | 6000000 | 12000000}
+            - 8 channels enabled: {AUTO | 12000 | 120000 | 1200000 | 12000000 | 24000000}
+            - 16 channels enabled: {AUTO | 6000 | 60000 | 600000 | 6000000 | 12000000}
 
-        The relationship among memory depth, sample rate, and waveform length is:
-            Memory Depth = Sample Rate × Waveform Length
+        Memory Depth = Sample Rate × Waveform Length
+        Waveform Length = horizontal timebase × number of horizontal grids (12 for MSO1000Z/DS1000Z)
+        When AUTO is selected, the oscilloscope automatically chooses the memory depth
+        according to the current sample rate.
 
-        Waveform Length equals the horizontal timebase (set with :TIMebase[:MAIN]:SCALe)
-        multiplied by the number of horizontal grids (12 for MSO1000Z/DS1000Z).
+        :param mdep: Memory depth to set (AUTO or integer as string)
+        :type mdep: str | None
 
-        When AUTO is selected, the oscilloscope selects the memory depth automatically
-        based on the current sample rate.
+        :return: Current memory depth if `mdep` is None
+        :rtype: str | None
         """
-        command = ":ACQuire_MDEPth"
-        self._send_command(command)
-        self.logger.info("Sent ACQuire_MDEPth")
+        if mdep is not None:
+            command = f":ACQuire_MDEPth {mdep}"
+            self._send_command(command)
+            self.logger.info(f"Sent ACQuire_MDEPth {mdep}")
+        else:
+            command = ":ACQuire_MDEPth?"
+            ret = self._send_command(command)
+            self.logger.info("Sent ACQuire_MDEPth?")
+            return ret
+
 
     def ACQuire_TYPE(self) -> None:
         """
