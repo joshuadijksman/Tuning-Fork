@@ -246,11 +246,17 @@ def linePlot(
             ax2.set_xticks(ax.get_xticks())
 
         if datetime.fromtimestamp(time[-1]).day == datetime.fromtimestamp(time[0]).day:
-            labels = [datetime.fromtimestamp(t).strftime("%H:%M") for t in np.interp(ax.get_xticks(), x, time)]
+            if x[-1] > x[0]:
+                labels = [datetime.fromtimestamp(t).strftime("%H:%M") for t in np.interp(ax.get_xticks(), x, time)]
+            else:
+                labels = [datetime.fromtimestamp(t).strftime("%H:%M") for t in np.interp(ax.get_xticks(), np.flip(x), np.flip(time))]
             ax2.set_xticklabels(labels)
             ax2.set_xlabel("Time (HH:MM)")
         else:
-            labels = [datetime.fromtimestamp(t).strftime("%H:%M (%d/%m)") for t in np.interp(ax.get_xticks(), x, time)]
+            if x[-1] > x[0]:
+                labels = [datetime.fromtimestamp(t).strftime("%H:%M (%d/%m)") for t in np.interp(ax.get_xticks(), x, time)]
+            else:
+                labels = [datetime.fromtimestamp(t).strftime("%H:%M (%d/%m)") for t in np.interp(ax.get_xticks(), np.flip(x), np.flip(time))]
             ax2.set_xticklabels(labels)
             ax2.set_xlabel("Time (HH:MM (dd/mm))")
 
