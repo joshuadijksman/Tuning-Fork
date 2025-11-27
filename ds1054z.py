@@ -413,7 +413,7 @@ class DS1054Z:
         self._send_command(command)
         self.logger.info("Sent TFORce")
 
-    def ACQuire_AVERages(self) -> None:
+    def ACQuire_AVERages(self, count: int | None = None) -> None:
         """""
         Set or query the number of averages under the average acquisition mode.
 
@@ -421,10 +421,27 @@ class DS1054Z:
         In the average acquisition mode, greater number of averages can lower the noise
         and increase the vertical resolution, but will also slow the response of the displayed
         waveform to the waveform changes. Generate a trigger signal forcefully. This command is only applicable to the normal and
+
+        :param count: Number of averages
+        :type count: int | None
+
+        :raises ValueError: If count is out of range
+
+        :return: Current number of averages if `count == None`
+        :rtype: int
         """
-        command = ":ACQuire_AVERages"
-        self._send_command(command)
-        self.logger.info("Sent ACQuire_AVERages")
+        if count != None:
+            if count >= 2 and count <= 2**10:
+                command = f":ACQuire_AVERages {count}"
+                self._send_command(command)
+                self.logger.info(f"Sent ACQuire_AVERages {count}")
+            else:
+                raise ValueError(f'Value \"{count}\" is out of range 2^1 and 2^10!')
+        else:
+            command = ":ACQuire_AVERages?"
+            ret = self._send_command(command)
+            self.logger.info("Sent ACQuire_AVERages?")
+            return ret
     
     def ACQuire_MDEPth(self) -> None:
         """
