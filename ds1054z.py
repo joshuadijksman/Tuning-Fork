@@ -383,6 +383,24 @@ class DS1054Z:
         self._send_command(command)
         self.logger.info("Sent STOP")
 
+    def SINGle(self) -> None:
+        """
+        Sinlge trigger for the oscilloscope
+
+        Set the oscilloscope to the single trigger mode. This command is equivalent to any of the
+        following two operations: pressing the SINGLE key at the front panel and sending
+        the :TRIGger:SWEep SINGle command.
+        
+        In the single trigger mode, the oscilloscope triggers once when the trigger conditions
+        are met and then stops.
+        
+        When the waveform record function is enabled or during the playback of the
+        recorded waveform, this command is invalid.
+        """
+        command = ":SINGle"
+        self._send_command(command)
+        self.logger.info("Sent SINGle")    
+
 ###################################################################################################
 ###################################################################################################
 # TODO: Remove old functions
