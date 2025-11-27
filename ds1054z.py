@@ -399,7 +399,138 @@ class DS1054Z:
         """
         command = ":SINGle"
         self._send_command(command)
-        self.logger.info("Sent SINGle")    
+        self.logger.info("Sent SINGle")  
+
+    def TFORce(self) -> None:
+        """""
+        Triggers singal forcefully
+
+        Generate a trigger signal forcefully. This command is only applicable to the normal and
+        single trigger modes (see the :TRIGger:SWEep command) and is equivalent to pressing
+        the FORCE key in the trigger control area at the front panel.
+        """
+        command = ":TFORce"
+        self._send_command(command)
+        self.logger.info("Sent TFORce")
+
+    def ACQuire_AVERages(self) -> None:
+        """""
+        Set or query the number of averages under the average acquisition mode.
+
+        You can sent the :ACQuire:TYPE command to set the acquisition mode.
+        In the average acquisition mode, greater number of averages can lower the noise
+        and increase the vertical resolution, but will also slow the response of the displayed
+        waveform to the waveform changes. Generate a trigger signal forcefully. This command is only applicable to the normal and
+        """
+        command = ":ACQuire_AVERages"
+        self._send_command(command)
+        self.logger.info("Sent ACQuire_AVERages")
+    
+    def ACQuire_MDEPth(self) -> None:
+        """
+        Set or query the memory depth of the oscilloscope (number of waveform points
+        stored in a single trigger sample). Default unit is points (pts).
+
+        For analog channels:
+            - Single channel enabled:
+                {AUTO | 12000 | 120000 | 1200000 | 12000000 | 24000000}
+            - Dual channels enabled:
+                {AUTO | 6000 | 60000 | 600000 | 6000000 | 12000000}
+            - Three/four channels enabled:
+                {AUTO | 3000 | 30000 | 300000 | 3000000 | 6000000}
+
+        For digital channels:
+            - 8 channels enabled:
+                {AUTO | 12000 | 120000 | 1200000 | 12000000 | 24000000}
+            - 16 channels enabled:
+                {AUTO | 6000 | 60000 | 600000 | 6000000 | 12000000}
+
+        The relationship among memory depth, sample rate, and waveform length is:
+            Memory Depth = Sample Rate × Waveform Length
+
+        Waveform Length equals the horizontal timebase (set with :TIMebase[:MAIN]:SCALe)
+        multiplied by the number of horizontal grids (12 for MSO1000Z/DS1000Z).
+
+        When AUTO is selected, the oscilloscope selects the memory depth automatically
+        based on the current sample rate.
+        """
+        command = ":ACQuire_MDEPth"
+        self._send_command(command)
+        self.logger.info("Sent ACQuire_MDEPth")
+
+    def ACQuire_TYPE(self) -> None:
+        """
+        Set or query the acquisition mode of the oscilloscope.
+
+        NORMal:
+        Samples the signal at equal time intervals to reconstruct the waveform.
+        Provides the best display effect for most waveforms.
+
+        AVERages:
+        Averages multiple waveform samples to reduce random noise and improve
+        vertical resolution. The number of averages is set with :ACQuire:AVERages.
+        More averages reduce noise but slow waveform update.
+
+        PEAK (Peak Detect):
+        Acquires minimum and maximum values within each sample interval to retain
+        narrow pulses or peaks that might otherwise be lost. Displays more noise.
+
+        HRESolution (High Resolution):
+        Uses oversampling and averaging of adjacent sample points to reduce noise
+        and generate smoother waveforms.
+        """
+        command = ":ACQuire_TYPE"
+        self._send_command(command)
+        self.logger.info("Sent ACQuire_TYPE")
+    
+    def ACQuire_SRATE(self) -> None:
+        """
+        Query the current sample rate. The default unit is Sa/s.
+
+        Sample rate is the sampling frequency of the oscilloscope, meaning the number
+        of waveform points acquired per second.
+
+        The relationship among memory depth, sample rate, and waveform length is:
+            Memory Depth = Sample Rate × Waveform Length
+
+        Memory Depth is set using :ACQuire:MDEPth.
+        Waveform Length equals the horizontal timebase (set with :TIMebase[:MAIN]:SCALe)
+        multiplied by the number of horizontal scales (12 for MSO1000Z/DS1000Z).
+        """
+        command = ":ACQuire_SRATE?"
+        self._send_command(command)
+        self.logger.info("Sent ACQuire_SRATE?")
+
+    def CALibrate_QUIT(self) -> None:
+        """
+        Exit the self-calibration at any time.
+        """
+        command = ":CALibrate_QUIT"
+        self._send_command(command)
+        self.logger.info("Sent CALibrate_QUIT")
+    
+    def CALibrate_START(self) -> None:
+        """
+        The oscilloscope starts self-calibration.
+
+        Self-calibration allows the oscilloscope to quickly reach an optimal working
+        state for accurate measurements.
+
+        During self-calibration, all channels must be disconnected from the inputs.
+
+        Most keys are disabled during the process. The self-calibration can be exited
+        using the :CALibrate:QUIT command.
+        """
+        command = ":CALibrate_START"
+        self._send_command(command)
+        self.logger.info("Sent CALibrate_START")
+    
+    
+
+
+
+
+           
 
 ###################################################################################################
 ###################################################################################################
