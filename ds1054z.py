@@ -428,7 +428,7 @@ class DS1054Z:
         :raises ValueError: If count is out of range
 
         :return: Current number of averages if `count == None`
-        :rtype: int
+        :rtype: int | None
         """
         if count is not None:
             if count >= 2 and count <= 2**10:
