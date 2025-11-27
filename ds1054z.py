@@ -413,7 +413,7 @@ class DS1054Z:
         self._send_command(command)
         self.logger.info("Sent TFORce")
 
-    def ACQuire_AVERages(self, count: int | None = None) -> None:
+    def ACQuire_AVERages(self, count: int | None = None) -> int | None:
         """""
         Set or query the number of averages under the average acquisition mode.
 
@@ -430,7 +430,7 @@ class DS1054Z:
         :return: Current number of averages if `count == None`
         :rtype: int
         """
-        if count != None:
+        if count is not None:
             if count >= 2 and count <= 2**10:
                 command = f":ACQuire_AVERages {count}"
                 self._send_command(command)
