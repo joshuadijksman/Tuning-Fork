@@ -479,48 +479,90 @@ class DS1054Z:
             return ret
 
 
-    def ACQuire_TYPE(self) -> None:
+    def ACQuire_TYPE(self, acq_type: str | None = None) -> str | None:
         """
         Set or query the acquisition mode of the oscilloscope.
 
-        NORMal:
-        Samples the signal at equal time intervals to reconstruct the waveform.
-        Provides the best display effect for most waveforms.
+        Description:
+            This command sets or queries the acquisition mode. The acquisition mode
+            determines how the oscilloscope samples and processes the input signal.
 
-        AVERages:
-        Averages multiple waveform samples to reduce random noise and improve
-        vertical resolution. The number of averages is set with :ACQuire:AVERages.
-        More averages reduce noise but slow waveform update.
+        Modes:
+            - NORMal:
+                Samples the signal at equal time intervals to rebuild the waveform.
+                Provides the best display effect for most waveforms.
 
-        PEAK (Peak Detect):
-        Acquires minimum and maximum values within each sample interval to retain
-        narrow pulses or peaks that might otherwise be lost. Displays more noise.
+            - AVERages:
+                Averages multiple waveform samples to reduce random noise and improve
+                vertical resolution. The number of averages is set with :ACQuire:AVERages.
+                More averages reduce noise but slow waveform update.
 
-        HRESolution (High Resolution):
-        Uses oversampling and averaging of adjacent sample points to reduce noise
-        and generate smoother waveforms.
+            - PEAK (Peak Detect):
+                Acquires the maximum and minimum values within each sample interval to
+                capture signal envelopes or narrow pulses. Can prevent signal confusion
+                but may display more noise.
+
+            - HRESolution (High Resolution):
+                Uses oversampling and averaging of neighboring points to reduce random
+                noise and produce smoother waveforms. Useful when the digital converter's
+                sample rate exceeds the acquisition memory storage rate.
+
+        Parameter:
+            acq_type (str | None): The acquisition mode to set. If None, the current
+                                acquisition mode is queried.
+
+            Valid values: "NORMal", "AVERages", "PEAK", "HRESolution"
+
+        Returns:
+            str | None: The current acquisition mode if queried (acq_type is None).
+
+        Raises:
+            ValueError: If acq_type is not one of the valid values.
         """
-        command = ":ACQuire_TYPE"
-        self._send_command(command)
-        self.logger.info("Sent ACQuire_TYPE")
+        valid_types = ["NORMal", "AVERages", "PEAK", "HRESolution"]
+
+        if acq_type is not None:
+            if acq_type not in valid_types:
+                raise ValueError(f"Invalid acquisition type '{acq_type}', must be one of {valid_types}")
+            command = f":ACQuire_TYPE {acq_type}"
+            self._send_command(command)
+            self.logger.info(f"Sent ACQuire_TYPE {acq_type}")
+        else:
+            command = ":ACQuire_TYPE?"
+            ret = self._send_command(command)
+            self.logger.info("Sent ACQuire_TYPE?")
+            return ret
     
-    def ACQuire_SRATE(self) -> None:
+    def ACQuire_SRATE(self) -> str:
         """
-        Query the current sample rate. The default unit is Sa/s.
+        Query the current sample rate of the oscilloscope.
 
-        Sample rate is the sampling frequency of the oscilloscope, meaning the number
-        of waveform points acquired per second.
+        Description:
+            Retrieves the sampling frequency of the oscilloscope, i.e., the number of
+            waveform points acquired per second. The default unit is Sa/s.
 
-        The relationship among memory depth, sample rate, and waveform length is:
-            Memory Depth = Sample Rate × Waveform Length
+        Explanation:
+            Sample rate determines how many points per second the oscilloscope samples
+            the input signal. The relationship among memory depth, sample rate, and
+            waveform length is:
 
-        Memory Depth is set using :ACQuire:MDEPth.
-        Waveform Length equals the horizontal timebase (set with :TIMebase[:MAIN]:SCALe)
-        multiplied by the number of horizontal scales (12 for MSO1000Z/DS1000Z).
+                Memory Depth = Sample Rate × Waveform Length
+
+            Where:
+                - Memory Depth is set using :ACQuire:MDEPth.
+                - Waveform Length = horizontal timebase × number of horizontal scales
+                (12 for MSO1000Z/DS1000Z).
+
+        Returns:
+            str: Current sample rate in scientific notation (e.g., "2.000000e+09").
+
+        Example:
+            :ACQuire:SRATe? /*The query returns 2.000000e+09*/
         """
         command = ":ACQuire_SRATE?"
-        self._send_command(command)
+        ret = self._send_command(command)
         self.logger.info("Sent ACQuire_SRATE?")
+        return ret
 
     def CALibrate_QUIT(self) -> None:
         """
@@ -545,8 +587,280 @@ class DS1054Z:
         command = ":CALibrate_START"
         self._send_command(command)
         self.logger.info("Sent CALibrate_START")
-    
-    
+
+    def CHANnel_BWLimit(self, channel: int, bw_type: str | None = None) -> str | None:
+        """
+        Set or query the bandwidth limit parameter of the specified channel.
+
+        Description:
+            This command sets or queries the bandwidth limit for a channel. Limiting
+            the bandwidth can reduce noise but may attenuate high-frequency components
+            of the signal.
+
+        Modes:
+            - OFF: disables the bandwidth limit; all high-frequency components pass.
+            - 20M: enables the 20 MHz bandwidth limit; frequencies above 20 MHz are
+            attenuated.
+
+        Parameters:
+            channel (int): The channel number (1, 2, 3, or 4).
+            bw_type (str | None): Bandwidth limit to set ("OFF" or "20M"). If None,
+                                the current setting is queried.
+
+        Returns:
+            str | None: Current bandwidth limit if queried.
+
+        Raises:
+            ValueError: If channel or bw_type is out of range.
+
+        Examples:
+            CHANnel_BWLimit(1, "20M")  # Set channel 1 bandwidth limit to 20 MHz
+            CHANnel_BWLimit(2)         # Query channel 2 bandwidth limit
+        """
+        valid_channels = [1, 2, 3, 4]
+        valid_bw = ["OFF", "20M"]
+
+        if channel not in valid_channels:
+            raise ValueError(f"Invalid channel {channel}, must be 1-4")
+
+        if bw_type is not None:
+            if bw_type not in valid_bw:
+                raise ValueError(f"Invalid bandwidth type '{bw_type}', must be one of {valid_bw}")
+            command = f":CHANnel{channel}_BWLimit {bw_type}"
+            self._send_command(command)
+            self.logger.info(f"Sent CHANnel{channel}_BWLimit {bw_type}")
+        else:
+            command = f":CHANnel{channel}_BWLimit?"
+            ret = self._send_command(command)
+            self.logger.info(f"Sent CHANnel{channel}_BWLimit?")
+            return ret
+
+    def CHANnel_COUPling(self, channel: int, coupling: str | None = None) -> str | None:
+        """
+        Set or query the coupling mode of the specified channel.
+
+        Description:
+            This command sets or queries the input coupling of a channel.
+            Coupling determines how the oscilloscope processes AC and DC
+            components of the input signal.
+
+        Coupling Modes:
+            - AC:  Blocks the DC component of the signal.
+            - DC:  Passes both AC and DC components. (Default)
+            - GND: Blocks both AC and DC components; input is grounded.
+
+        Parameters:
+            channel (int): Channel number (1, 2, 3, or 4).
+            coupling (str | None): One of {"AC", "DC", "GND"}.
+                                If None, the function performs a query.
+
+        Returns:
+            str | None: The current coupling mode if this is a query.
+
+        Raises:
+            ValueError: If the channel or coupling mode is invalid.
+
+        Examples:
+            CHANnel_COUPling(1, "AC")   # Set channel 1 to AC coupling
+            CHANnel_COUPling(2)         # Query channel 2 coupling
+        """
+        valid_channels = [1, 2, 3, 4]
+        valid_modes = ["AC", "DC", "GND"]
+
+        if channel not in valid_channels:
+            raise ValueError(f"Invalid channel {channel}, must be 1–4")
+
+        if coupling is not None:
+            if coupling not in valid_modes:
+                raise ValueError(f"Invalid coupling '{coupling}', must be one of {valid_modes}")
+
+            command = f":CHANnel{channel}_COUPling {coupling}"
+            self._send_command(command)
+            self.logger.info(f"Sent CHANnel{channel}_COUPling {coupling}")
+
+        else:
+            command = f":CHANnel{channel}_COUPling?"
+            ret = self._send_command(command)
+            self.logger.info(f"Sent CHANnel{channel}_COUPling?")
+            return ret
+
+    def CHANnel_DISPlay(self, channel: int, state: bool | None = None) -> int | None:
+        """
+        Enable/disable a channel or query its display state.
+
+        Description:
+            This command enables or disables the specified channel, or queries
+            whether the channel is currently displayed.
+
+        Parameters:
+            channel (int): Channel number (1–4).
+            state (bool | None): True/False to enable/disable the channel.
+                                If None, the function performs a query.
+
+        Returns:
+            int | None:
+                - 1 or 0 when querying the channel display state.
+                - None when setting the state.
+
+        Raises:
+            ValueError: If the channel number is invalid.
+
+        SCPI Mapping:
+            True  → 1 (ON)
+            False → 0 (OFF)
+
+        Example:
+            CHANnel_DISPlay(1, True)   # Enable CH1
+            CHANnel_DISPlay(2)         # Query state of CH2
+        """
+        valid_channels = [1, 2, 3, 4]
+
+        if channel not in valid_channels:
+            raise ValueError(f"Invalid channel {channel}, must be 1–4")
+
+        if state is not None:
+            scpi_value = "1" if state else "0"
+            command = f":CHANnel{channel}_DISPlay {scpi_value}"
+            self._send_command(command)
+            self.logger.info(f"Sent CHANnel{channel}_DISPlay {scpi_value}")
+
+        else:
+            command = f":CHANnel{channel}_DISPlay?"
+            ret = self._send_command(command)
+            self.logger.info(f"Sent CHANnel{channel}_DISPlay?")
+            return ret
+        
+    def CHANnel_INVert(self, channel: int, state: bool | None = None) -> int | None:
+        """
+        Enable or disable waveform invert for the specified channel, or query its state.
+
+        Description:
+            This command enables or disables the waveform invert of the specified channel
+            or queries whether waveform invert is currently active.
+
+        Parameters:
+            channel (int): Channel number (1–4).
+            state (bool | None): True/False to enable or disable waveform invert.
+                                If None, the function performs a query.
+
+        Returns:
+            int | None:
+                - 1 or 0 when querying the current invert status.
+                - None when setting the invert state.
+
+        Raises:
+            ValueError: If the channel number is invalid.
+
+        Explanation:
+            When waveform invert is OFF, the displayed waveform is normal.
+            When waveform invert is ON, the waveform voltage values are inverted.
+        """
+        valid_channels = [1, 2, 3, 4]
+
+        if channel not in valid_channels:
+            raise ValueError(f"Invalid channel {channel}, must be 1–4")
+
+        if state is not None:
+            scpi_value = "1" if state else "0"
+            command = f":CHANnel{channel}_INVert {scpi_value}"
+            self._send_command(command)
+            self.logger.info(f"Sent CHANnel{channel}_INVert {scpi_value}")
+
+        else:
+            command = f":CHANnel{channel}_INVert?"
+            ret = self._send_command(command)
+            self.logger.info(f"Sent CHANnel{channel}_INVert?")
+            return ret
+        
+    def CHANnel_OFFSet(self, channel: int, offset: float | None = None) -> float | None:
+        """
+        Set or query the vertical offset of the specified channel. Default unit: volts.
+
+        Description:
+            This command sets or queries the vertical offset of a channel. The allowed
+            offset range depends on both the vertical scale (V/div) and the probe ratio.
+
+        Parameters:
+            channel (int): Channel number (1–4).
+            offset (float | None): Offset value in volts. If None, a query is performed.
+
+        Returns:
+            float | None:
+                - float: current offset (scientific notation) when querying.
+                - None: when setting.
+
+        Raises:
+            ValueError: if channel is invalid or offset is outside the allowed range.
+
+        Explanation:
+            Allowed ranges (from the Rigol manual):
+
+            Probe 1X:
+                scale ≥ 0.5 V/div:    -100 V to +100 V
+                scale <  0.5 V/div:    -2 V to +2 V
+            
+            Probe 10X:
+                scale ≥ 5 V/div:      -1000 V to +1000 V
+                scale <  5 V/div:      -20 V to +20 V
+
+            The channel offset shifts the waveform vertically on the display.
+        """
+
+        # Channel validation
+        if channel not in [1, 2, 3, 4]:
+            raise ValueError(f"Invalid channel {channel}, must be 1–4")
+
+        # Query mode
+        if offset is None:
+            command = f":CHANnel{channel}_OFFSet?"
+            ret = self._send_command(command)
+            self.logger.info(f"Sent CHANnel{channel}_OFFSet?")
+            return ret
+
+        # --------------------------
+        # Determine allowed range
+        # --------------------------
+
+        # Get vertical scale (V/div)
+        scale_cmd = f":CHANnel{channel}_SCALe?"
+        scale = float(self._send_command(scale_cmd))
+
+        # Get probe ratio (1, 10, 100, etc.)
+        probe_cmd = f":CHANnel{channel}_PROBe?"
+        probe_ratio = float(self._send_command(probe_cmd))
+
+        # Determine limits
+        if probe_ratio == 1:
+            if scale >= 0.5:
+                min_off, max_off = -100.0, 100.0
+            else:
+                min_off, max_off = -2.0, 2.0
+
+        elif probe_ratio == 10:
+            if scale >= 5.0:
+                min_off, max_off = -1000.0, 1000.0
+            else:
+                min_off, max_off = -20.0, 20.0
+
+        else:
+            # Manual only defines 1X and 10X cases, voor anderen geen limieten opgegeven
+            raise ValueError(f"Unsupported probe ratio {probe_ratio} for offset limits")
+
+        # Validation
+        if not (min_off <= offset <= max_off):
+            raise ValueError(
+                f"Offset {offset} V out of range for CH{channel}: "
+                f"{min_off} V to {max_off} V "
+                f"(scale={scale} V/div, probe={probe_ratio}X)"
+            )
+
+        # --------------------------
+        # Set the offset
+        # --------------------------
+        command = f":CHANnel{channel}_OFFSet {offset}"
+        self._send_command(command)
+        self.logger.info(f"Sent CHANnel{channel}_OFFSet {offset}")
+
 
 
 
