@@ -76,7 +76,7 @@ class sfa:
 
     def setAmplitude(self, volt: float) -> None:
         """
-        Set normal sine out amplitude voltage.
+        Set sine out amplitude voltage.
         """
         self.sine_out_amplitude = round(volt, 6)
         command = "SLVL " + str(self.sine_out_amplitude)
@@ -100,7 +100,7 @@ class sfa:
         """
         Read phase
 
-        Returns current normal phase or NaN on bad read.
+        Returns current phase or NaN on bad read.
         """
         command = "OUTP? 4"
         feedback = self._write_read(command)
