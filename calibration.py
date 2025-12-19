@@ -411,7 +411,7 @@ def calibrateC0AmplitudeSingle():
     pass
 
 
-def calibrateMas(
+def calibrateMassSingle(
     ctrl: sfa,
     freqGen: RigolDG,
     freqGenChannel: int,
