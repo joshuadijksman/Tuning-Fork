@@ -117,10 +117,10 @@ def calibrateAirSingle(
             )
 
     # fit Lorentzian
-    ω0Normal = 2 * np.pi * fResonance
-    ampsMeters = (ampsDense * accelerometerGConversion) * g
-    C0Normal = np.nanmax(ampsMeters) * ω0Normal
-    gamma0Normal = ω0Normal / 10.0
+    omega0 = 2 * np.pi * fResonance
+    ampsMeters = np.abs((ampsDense / accelerometerGConversion) * g)/(omega0**2)
+    gamma0 = omega0 / 10.0
+    C0 = np.nanmax(ampsMeters) * omega0 * gamma0
 
     def A_model(f, C, gamma_sys, omega0):
         ω = 2 * np.pi * f
@@ -130,19 +130,19 @@ def calibrateAirSingle(
         A_model,
         freqsDense,
         ampsMeters,
-        p0=[C0Normal, gamma0Normal, ω0Normal],
+        p0=[C0, gamma0, omega0],
         bounds=([0, 0, 0], [np.inf, np.inf, np.inf]),
         nan_policy="omit",
         maxfev=fitMaxFev,
     )
-    CNormal, gammaNormal, omega0Normal = poptNormal
-    f0Normal = omega0Normal / (2 * np.pi)
+    C, gamma, omegaRes = poptNormal
+    fRes = omegaRes / (2 * np.pi)
     if debugPrints in ["all", "results"]:
         print(
-            f"[CAL] (Normal) Fit results: f_res={f0Normal:.6f} Hz, C={CNormal:.3e}, γ_sys={gammaNormal:.3e}"
+            f"[CAL] (Normal) Fit results: f_res={fRes:.6f} Hz, C={C:.3e}, γ_sys={gamma:.3e}"
         )
 
-    return [f0Normal, CNormal, gammaNormal]
+    return [fRes, C, gamma]
 
 
 def calibrateAir(
@@ -272,15 +272,15 @@ def calibrateAir(
             )
 
     # fit Lorentzian
-    ampsDenseNormalMeters = (ampsDenseNormal * accelerometerGConversion) * g
-    ω0Normal = 2 * np.pi * fNormal
-    C0Normal = np.nanmax(ampsDenseNormalMeters) * ω0Normal
-    gamma0Normal = ω0Normal / 10.0
+    omega0Normal = 2 * np.pi * fNormal
+    ampsDenseNormalMeters = np.abs((ampsDenseNormal / accelerometerGConversion) * g)/(omega0Normal**2)
+    gamma0Normal = omega0Normal / 10.0
+    C0Normal = np.nanmax(ampsDenseNormalMeters) * omega0Normal * gamma0Normal
 
-    ampsDenseShearMeters = (ampsDenseShear * accelerometerGConversion) * g
-    ω0Shear = 2 * np.pi * fShear
-    C0Shear = np.nanmax(ampsDenseShearMeters) * ω0Shear
-    gamma0Shear = ω0Shear / 10.0
+    omega0Shear = 2 * np.pi * fShear
+    ampsDenseShearMeters = np.abs((ampsDenseShear / accelerometerGConversion) * g) / (omega0Shear**2)
+    gamma0Shear = omega0Shear / 10.0
+    C0Shear = np.nanmax(ampsDenseShearMeters) * omega0Shear * gamma0Shear
 
     def A_model(f, C, gamma_sys, omega0):
         ω = 2 * np.pi * f
@@ -290,7 +290,7 @@ def calibrateAir(
         A_model,
         freqsDenseNormal,
         ampsDenseNormalMeters,
-        p0=[C0Normal, gamma0Normal, ω0Normal],
+        p0=[C0Normal, gamma0Normal, omega0Normal],
         bounds=([0, 0, 0], [np.inf, np.inf, np.inf]),
         nan_policy="omit",
         maxfev=fitMaxFev,
@@ -308,7 +308,7 @@ def calibrateAir(
         A_model,
         freqsDenseShear,
         ampsDenseShearMeters,
-        p0=[C0Shear, gamma0Shear, ω0Shear],
+        p0=[C0Shear, gamma0Shear, omega0Shear],
         bounds=([0, 0, 0], [np.inf, np.inf, np.inf]),
         nan_policy="omit",
         maxfev=fitMaxFev,
