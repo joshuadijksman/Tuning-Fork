@@ -415,8 +415,117 @@ def calibrateDistance(
 
     return df
 
-def calibrateC0AmplitudeSingle():
-    pass
+
+def calibrateC0AmplitudeSingle(
+    ctrl: sfa,
+    freqGen: RigolDG,
+    freqGenChannel: int,
+    startAmp: float,
+    endAmp: float,
+    stepAmp: float,
+    freqMin: float = 780.,
+    freqMax: float = 800.,
+    delay: float = 0.75,
+    denseHalfwidth: float = 3.0,
+    denseStep: float = 0.1,
+    fitMaxFev: float = 5000,
+    accelerometerGConversion: float = 0.66,
+    **kwargs,
+) -> list[list[float]]:
+    """
+    Gerates values for C0 and damping factor of the system while sweeping the amplitude.
+
+    Sweep through amplitudes will start and lock-in amplifier will be set on the aplitude.\\
+    Make sure to check if the lock-in amplifier can actually handle the set amplitudes, such as a minimum of 6 mV.
+
+    :param ctrl: Lock-In Amplifier controller.
+    :type ctrl: sfa
+
+    :param freqGen: Frequency Generator to use.
+    :type freqGen: RigolDG
+
+    :param freqGenChannel: Channel on frequency generator to use.
+    :type freqGenChannel: int
+
+    :param startAmp: Starting amplitude, in Volt.
+    :type startAmp: float
+
+    :param endAmp: Ending amplitude, in Volt.
+    :type endAmp: float
+
+    :param stepAmp: Stepsize between measurement amplitudes, in Volt.
+    :type stepAmp: float
+
+    :param freqMin: Start of initial guess range. default: `789.5` Hz
+    :type freqMin: float
+
+    :param freqMax: End of inititial guess range. default: `794.5` Hz
+    :type freqMax: float
+
+    :param delay: Delay between setting the new frequency and measuring the amplitude. default: `0.75` s
+    :type delay: float
+
+    :param denseHalfwidth: Width of densesweep from resonance frequency. default: `3.0` Hz
+    :type denseHalfwidth: float
+
+    :param denseStep: Frequency step size used in dense sweep. default: `0.1` Hz
+    :type denseStep: float
+
+    :param fitMaxFev: Maximum Fev value for scipy fit. default: `5000`
+    :type fitMaxFev: float
+
+    :param accelerometerGConversion: Conversionvalue for accelerometer voltage to g. default: `0.66` V/g
+    :type accelerometerGConversion: float
+
+    :param points: How many points to use in coarse sweep. default: `7`
+    :type points: int
+
+    :param tolerance: What phase angle is ''good enough''. default: `0.1/180 * \u03c0` RAD
+    :type tolerance: float
+
+    :param iterations: Maximum iterations the PLL tries to converge. default: `5`
+    :type iterations: int
+
+    :param Kp: Kp value for PLL loop. default: `4 / \u03c0'
+    :type Kp: float
+
+    :param debugPrints: How much should be printed to console `['all', 'results', 'none']`, default: 'results'
+    :type debugPrints: str
+
+    :returns: list of lists with floats ordered as: \\[Amplitude (V), Resonance Frequency (Hz), C0 (s\u00b2), Damping system (s\u207b\u00b9)]
+    :rtype: list[list[float]]
+    """
+    amplitudes = np.linspace(
+        start=startAmp,
+        stop=endAmp,
+        num=int((endAmp - startAmp) / stepAmp) + 1,
+        endpoint=True,
+    )
+
+    if not freqGen.get_output_state(freqGenChannel):
+        freqGen.set_output(freqGenChannel, True)
+
+    results = []
+    
+    for amp in amplitudes:
+        ctrl.setAmplitude(amp)
+        time.sleep(delay)
+        fRes, C0, gamma = calibrateAirSingle(
+            ctrl,
+            freqGen,
+            freqGenChannel,
+            freqMin,
+            freqMax,
+            delay,
+            denseHalfwidth,
+            denseStep,
+            fitMaxFev,
+            accelerometerGConversion,
+            **kwargs,
+        )
+        results += [[amp, fRes, C0, gamma]]
+
+    return results
 
 
 def calibrateMassSingle(
