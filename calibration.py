@@ -80,6 +80,9 @@ def calibrateAirSingle(
     debugPrints: str = kwargs.get("debugPrints", "results")
     g = 9.81
 
+    if not freqGen.get_output_state(freqGenChannel):
+        freqGen.set_output(freqGenChannel, True)
+
     optimalPLL = PLL.PLL1D(
         ctrl=ctrl,
         freqGen=freqGen,
@@ -212,6 +215,11 @@ def calibrateAir(
     """
     debugPrints: str = kwargs.get("debugPrints", "results")
     g = 9.81
+
+    if not freqGen.get_output_state(1):
+        freqGen.set_output(1, True)
+    if not freqGen.get_output_state(2):
+        freqGen.set_output(2, True)
 
     optNormal, optShear = PLL.PLL2x1D(
         ctrlNormal,
@@ -479,6 +487,9 @@ def calibrateMassSingle(
     """
 
     results = []
+
+    if not freqGen.get_output_state(freqGenChannel):
+        freqGen.set_output(freqGenChannel, True)
 
     while True:
         que = input("Input mass (g) or type 'done' when finished: ")
