@@ -407,8 +407,11 @@ def calibrateDistance(
 
     return df
 
+def calibrateC0AmplitudeSingle():
+    pass
 
-def calibrateC0AmplitudeSingle(
+
+def calibrateMas(
     ctrl: sfa,
     freqGen: RigolDG,
     freqGenChannel: int,
