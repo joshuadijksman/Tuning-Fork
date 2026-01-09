@@ -1,30 +1,54 @@
-import numpy as np
-import time
-import os
+"""
+Independent measurement functions
+"""
 
-from newsfa import sfa
-from pi_e_625 import pi_e_625
-from mitutoyo import mitutoyo
+import os
+import time
+from datetime import timedelta
+import numpy as np
+
+from LockIn_Amplifier import SR830
+from Piezo_Controller import E625
+from Height_Gauge import mitutoyo
 from rigol_dg1022 import RigolDG
 from PLL import PLL1D, PLL2D, PLL2x1D
-from frequencySweep2D import folderAvailable
-from plots import linePlot
+from plots import linePlot, heatmapPlot
 from typing import overload
+
+
+def __folderAvailable(path: os.PathLike, name: str, n=0) -> str:
+    """
+    Checks if folder is available, returns filepath.
+
+    If folder name is already used, adds ```_n``` to the end, with ```n``` increasing per folder with the same name.
+    """
+    if n == 0:
+        if os.path.exists(os.path.join(path, name)):
+            return __folderAvailable(path, name, n=n + 1)
+        else:
+            if not os.path.exists(path):
+                os.mkdir(path)
+            return os.path.join(path, name)
+    else:
+        if os.path.exists(os.path.join(path, name + f"_{n}")):
+            return __folderAvailable(path, name, n=n + 1)
+        else:
+            return os.path.join(path, name + f"_{n}")
 
 
 @overload
 def viscosity1D(
-    ctrl: sfa,
+    ctrl: SR830,
     freqGen: RigolDG,
-    zStage: pi_e_625,
+    zStage: E625,
     height_dev: mitutoyo,
     fRes0: float,
 ): ...
 @overload
 def viscosity1D(
-    ctrl: sfa,
+    ctrl: SR830,
     freqGen: RigolDG,
-    zStage: pi_e_625,
+    zStage: E625,
     height_dev: mitutoyo,
     fRes0: float,
     /,
@@ -41,9 +65,9 @@ def viscosity1D(
 
 
 def viscosity1D(
-    ctrl: sfa,
+    ctrl: SR830,
     freqGen: RigolDG,
-    zStage: pi_e_625,
+    zStage: E625,
     height_dev: mitutoyo,
     fRes0: float,
     start_V=10.0,
@@ -61,7 +85,7 @@ def viscosity1D(
         if not os.path.exists(filePath):
             os.mkdir(filePath)
     else:
-        filePath = folderAvailable(
+        filePath = __folderAvailable(
             path=os.path.abspath("./Data"), name=time.strftime("%Y-%m-%d_%H-%M")
         )
         os.mkdir(filePath)
@@ -269,8 +293,8 @@ def viscosity1D(
 
 
 def frequencyDependence(
-    ctrlNorm: sfa,
-    ctrlShea: sfa,
+    ctrlNorm: SR830,
+    ctrlShea: SR830,
     freqGen: RigolDG,
     freqResMin: float,
     freqResMax: float,
@@ -290,7 +314,7 @@ def frequencyDependence(
         if not os.path.exists(filePath):
             os.mkdir(filePath)
     else:
-        filePath = folderAvailable(
+        filePath = __folderAvailable(
             path=os.path.abspath("./Data"), name=time.strftime("%Y-%m-%d_%H-%M")
         )
         os.mkdir(filePath)
@@ -343,3 +367,135 @@ def frequencyDependence(
     )
 
     return resonance
+
+
+def frequencySweep2D(
+    fileName: str | os.PathLike,
+    ctrlNormal: SR830,
+    ctrlShear: SR830,
+    freqGen: RigolDG,
+    freqsNormal,
+    freqsShear,
+    delay: float = 2.0,
+    sysDelay: float = 0.777,
+) -> None:
+    os.makedirs(fileName)
+
+    lenNormal = len(freqsNormal)
+    lenShear = len(freqsShear)
+
+    open(file=os.path.join(fileName, "NormalAmp.csv"), mode="x").close()
+    open(file=os.path.join(fileName, "ShearAmp.csv"), mode="x").close()
+    open(file=os.path.join(fileName, "NormalPha.csv"), mode="x").close()
+    open(file=os.path.join(fileName, "ShearPha.csv"), mode="x").close()
+
+    normAmpFile = open(file=os.path.join(fileName, "NormalAmp.csv"), mode="a")
+    sheaAmpFile = open(file=os.path.join(fileName, "ShearAmp.csv"), mode="a")
+    normPhaFile = open(file=os.path.join(fileName, "NormalPha.csv"), mode="a")
+    sheaPhaFile = open(file=os.path.join(fileName, "ShearPha.csv"), mode="a")
+
+    print(
+        f"\nExpected loop time: {timedelta(seconds=lenNormal * lenShear * (delay + sysDelay))}\n"
+    )
+    tPre = time.time()
+    for i, fNormal in enumerate(freqsNormal):
+        print("Normal: " + str(fNormal) + " (Hz)")
+        listNormalAmp = lenShear * [0.0]
+        listNormalPha = lenShear * [0.0]
+        listShearAmp = lenShear * [0.0]
+        listShearPha = lenShear * [0.0]
+
+        freqGen.set_frequency(1, fNormal)
+        for j, fShear in enumerate(freqsShear):
+            freqGen.set_frequency(2, fShear)
+            time.sleep(delay)
+            listNormalAmp[j] = ctrlNormal.readAmplitude()
+            listNormalPha[j] = ctrlNormal.readPhase()
+            listShearAmp[j] = ctrlShear.readAmplitude()
+            listShearPha[j] = ctrlShear.readPhase()
+
+        normAmpFile.write(str(listNormalAmp)[1:-1] + "\n")
+        sheaAmpFile.write(str(listShearAmp)[1:-1] + "\n")
+        normPhaFile.write(str(listNormalPha)[1:-1] + "\n")
+        sheaPhaFile.write(str(listShearPha)[1:-1] + "\n")
+        normAmpFile.flush()
+        sheaAmpFile.flush()
+        normPhaFile.flush()
+        sheaPhaFile.flush()
+
+    print(f"\nFinished after: {timedelta(seconds=time.time() - tPre)}\n")
+
+    normAmpFile.close()
+    sheaAmpFile.close()
+    normPhaFile.close()
+    sheaPhaFile.close()
+
+    normalAmplitudes = np.genfromtxt(
+        os.path.join(fileName, "NormalAmp.csv"), delimiter=","
+    )
+    normalPhases = np.genfromtxt(os.path.join(fileName, "NormalPha.csv"), delimiter=",")
+    shearAmplitudes = np.genfromtxt(
+        os.path.join(fileName, "ShearAmp.csv"), delimiter=","
+    )
+    shearPhases = np.genfromtxt(os.path.join(fileName, "ShearPha.csv"), delimiter=",")
+
+    normalisedAbsoluteAmplitudes = np.sqrt(
+        (
+            (normalAmplitudes / normalAmplitudes.max()) ** 2
+            + (shearAmplitudes / shearAmplitudes.max()) ** 2
+        )
+        / 2
+    )
+    heatmapPlot(
+        os.path.join(fileName, "NormalAmp.png"),
+        normalAmplitudes,
+        freqsShear,
+        freqsNormal,
+        title="Normal Amplitudes",
+    )
+    heatmapPlot(
+        os.path.join(fileName, "ShearAmp.png"),
+        shearAmplitudes,
+        freqsShear,
+        freqsNormal,
+        title="Shear Amplitudes",
+    )
+    heatmapPlot(
+        os.path.join(fileName, "NormalisedAmp.png"),
+        normalisedAbsoluteAmplitudes,
+        freqsShear,
+        freqsNormal,
+        title="Normalised Amplitudes",
+    )
+
+    normalisedAbsolutePhases = np.sqrt(
+        (
+            (normalPhases / normalPhases.max()) ** 2
+            + (shearPhases / shearPhases.max()) ** 2
+        )
+        / 2
+    )
+    heatmapPlot(
+        os.path.join(fileName, "NormalPha.png"),
+        normalPhases,
+        freqsShear,
+        freqsNormal,
+        title="Normal Phases",
+    )
+    heatmapPlot(
+        os.path.join(fileName, "ShearPha.png"),
+        shearPhases,
+        freqsShear,
+        freqsNormal,
+        title="Shear Phases",
+    )
+    heatmapPlot(
+        os.path.join(fileName, "NormalisedPha.png"),
+        normalisedAbsolutePhases,
+        freqsShear,
+        freqsNormal,
+        title="Normalised Phases",
+    )
+
+    ctrlNormal.ser.close()
+    ctrlShear.ser.close()

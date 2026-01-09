@@ -4,14 +4,14 @@ import pandas as pd
 import numpy as np
 from rigol_dg1022 import RigolDG
 
-from pi_e_625 import pi_e_625
-from mitutoyo import mitutoyo
-from newsfa import sfa
+from Piezo_Controller import E625
+from Height_Gauge import mitutoyo
+from LockIn_Amplifier import SR830
 import PLL
 
 
 def calibrateAirSingle(
-    ctrl: sfa,
+    ctrl: SR830,
     freqGen: RigolDG,
     freqGenChannel: int,
     freqMin: float = 789.5,
@@ -28,6 +28,8 @@ def calibrateAirSingle(
 
     Seeks resonance frequency in range `freqMin` to `freqMax` and does a sweep with stepsize `denseStep` for a region `-denseHalfwidth` and `+denseHalfwidth` around the resonance frequency.\\
     After the dense sweep a fit will be made, which extracts the values for C0 and \u03b3 system.
+
+    Reminder: changing the amplitude of the input voltage will change C0.
 
     :param ctrl: Lock-In Amplifier controller.
     :type ctrl: sfa
@@ -146,8 +148,8 @@ def calibrateAirSingle(
 
 
 def calibrateAir(
-    ctrlNormal: sfa,
-    ctrlShear: sfa,
+    ctrlNormal: SR830,
+    ctrlShear: SR830,
     freqGen: RigolDG,
     freqNormalRange: list[float] = [789.5, 794.5],
     freqShearRange: list[float] = [452.6, 457.6],
@@ -164,6 +166,8 @@ def calibrateAir(
     Difference with calibrateAirSingle: sweeps over both Normal and Shear mode.
     Seeks resonance frequency in range `freq...Range[0]` to `freq...Range[1]` and does a sweep with stepsize `denseStep` for a region `-denseHalfwidth` and `+denseHalfwidth` around the resonance frequency.\\
     After the dense sweep a fit will be made, which extracts the values for C0 and \u03b3 system.
+
+    Reminder: changing the amplitude of the input voltage will change C0.
 
     :param ctrlNormal: Lock-In Amplifier controller for the Normal mode.
     :type ctrlNormal: sfa
@@ -326,8 +330,8 @@ def calibrateAir(
 
 
 def calibrateDistance(
-    ctrlNormal: sfa,
-    z_stage: pi_e_625,
+    ctrlNormal: SR830,
+    z_stage: E625,
     height_dev: mitutoyo,
     start_V=10.0,
     max_V=110.0,
@@ -417,7 +421,7 @@ def calibrateDistance(
 
 
 def calibrateC0AmplitudeSingle(
-    ctrl: sfa,
+    ctrl: SR830,
     freqGen: RigolDG,
     freqGenChannel: int,
     startAmp: float,
@@ -529,7 +533,7 @@ def calibrateC0AmplitudeSingle(
 
 
 def calibrateMassSingle(
-    ctrl: sfa,
+    ctrl: SR830,
     freqGen: RigolDG,
     freqGenChannel: int,
     freqMin: float = 789.5,

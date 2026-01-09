@@ -1,3 +1,7 @@
+"""
+Simple plot functions for base data visualization
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter

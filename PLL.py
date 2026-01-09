@@ -7,12 +7,12 @@ At resonance, the amplitude will be greatest and the phase shift at 0.
 
 import numpy as np
 import time
-from newsfa import sfa  # Ensure sfa.py is in the same directory
+from LockIn_Amplifier import SR830  # Ensure sfa.py is in the same directory
 from rigol_dg1022 import RigolDG
 
 
 def PLL1D(
-    ctrl: sfa,
+    ctrl: SR830,
     freqGen: RigolDG,
     freqMin: float,
     freqMax: float,
@@ -112,8 +112,8 @@ def PLL1D(
 
 
 def PLL2D(
-    ctrlNormal: sfa,
-    ctrlShear: sfa,
+    ctrlNormal: SR830,
+    ctrlShear: SR830,
     freqGen: RigolDG,
     freqNormalRange: list[int | float] = [789.5, 794.5],
     freqShearRange: list[int | float] = [452.6, 457.6],
@@ -227,8 +227,8 @@ def PLL2D(
 
 
 def PLL2x1D(
-    ctrlNormal: sfa,
-    ctrlShear: sfa,
+    ctrlNormal: SR830,
+    ctrlShear: SR830,
     freqGen: RigolDG,
     freqNormalRange: list[int | float] = [789.5, 794.5],
     freqShearRange: list[int | float] = [452.6, 457.6],
@@ -285,7 +285,7 @@ def PLL2x1D(
 
 if __name__ == "__main__":
     # Create an instance of the sfa class.
-    ctrlNormal = sfa(SN="")
+    ctrlNormal = SR830(SN="")
     freqGen = RigolDG()
     freqGen.set_waveform(1, "SIN")
     freqGen.set_waveform(2, "SIN")

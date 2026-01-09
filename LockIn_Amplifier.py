@@ -1,3 +1,7 @@
+"""
+Integration of SR830 Lock-In Amlifier from Stanford Research Systems
+"""
+
 ##  The available commands are:
 ##  Sf (x);   | This command sets the normal frequency to x (note that if the frequency controller is engaged this value will be overwritten)
 ##  Rf;       | This command returns the current normal frequency
@@ -27,7 +31,7 @@ def find_unique_dev_by_serial_number(sn: str) -> ListPortInfo | None:
     return found_devices[0] if len(found_devices) == 1 else None
 
 
-class sfa:
+class SR830:
     def __init__(self, SN: str, readDrops: int = 3) -> None:
         port = str(find_unique_dev_by_serial_number(sn=SN)).split(" ")[0]
         self.ser = serial.Serial(port, baudrate=9600, timeout=20)

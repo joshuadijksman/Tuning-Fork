@@ -1,10 +1,14 @@
+"""
+Integration of the E-625 Piezo Servo Controller from PI
+"""
+
 from pipython import GCSDevice
 from threading import Thread
 import threading
 import time
 
 
-class pi_e_625:
+class E625:
     def __init__(self, serialnum="121019479"):
         self.pidevice: GCSDevice = GCSDevice("E-625")
         # Serial number to connect to can be read on device!

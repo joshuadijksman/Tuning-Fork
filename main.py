@@ -1,17 +1,17 @@
 import numpy as np
 from rigol_dg1022 import RigolDG
 
-from pi_e_625 import pi_e_625
-from mitutoyo import mitutoyo
+from Piezo_Controller import E625
+from Height_Gauge import mitutoyo
 from measurements import frequencyDependence
-from newsfa import sfa
+from LockIn_Amplifier import SR830
 
 
 def main() -> None:
-    ctrlNormal: sfa = sfa(SN="A9JSTXTQA")
-    ctrlShear: sfa = sfa(SN="A9TQAG5OA")
+    ctrlNormal: SR830 = SR830(SN="A9JSTXTQA")
+    ctrlShear: SR830 = SR830(SN="A9TQAG5OA")
     freqGen: RigolDG = RigolDG()
-    zStage = pi_e_625()
+    zStage = E625()
     hDev = mitutoyo()
 
     freqGen.set_waveform(1, "SIN")
