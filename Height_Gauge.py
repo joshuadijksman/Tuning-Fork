@@ -1,6 +1,6 @@
 import serial
 from numpy import nan
-from newsfa import find_unique_dev_by_pidvid
+from LockIn_Amplifier import find_unique_dev_by_pidvid
 
 
 class mitutoyo(object):
