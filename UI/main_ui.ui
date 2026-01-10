@@ -47,7 +47,7 @@
       <height>546</height>
      </size>
     </property>
-    <layout class="QGridLayout" name="gridLayout_4">
+    <layout class="QGridLayout" name="HardwareWidgetGrid">
      <property name="leftMargin">
       <number>5</number>
      </property>
@@ -64,8 +64,8 @@
       <number>0</number>
      </property>
      <item row="0" column="1">
-      <widget class="QWidget" name="freqgengroup" native="true">
-       <widget class="QWidget" name="gridWidget_8" native="true">
+      <widget class="QWidget" name="FreqGenWidgetGroup" native="true">
+       <widget class="QWidget" name="FreqGenWidget" native="true">
         <property name="geometry">
          <rect>
           <x>0</x>
@@ -103,7 +103,7 @@
           <number>3</number>
          </property>
          <item row="0" column="0">
-          <widget class="QFrame" name="freqGenFrame_4">
+          <widget class="QFrame" name="FreqGenFrame">
            <property name="frameShape">
             <enum>QFrame::Shape::StyledPanel</enum>
            </property>
@@ -158,7 +158,7 @@
               <number>3</number>
              </property>
              <item row="2" column="0">
-              <widget class="QGroupBox" name="FreqGenNormalBox">
+              <widget class="QGroupBox" name="FreqGenChan1Box">
                <property name="title">
                 <string>Normal (Channel 1)</string>
                </property>
@@ -179,7 +179,7 @@
                  <number>6</number>
                 </property>
                 <item row="2" column="0">
-                 <widget class="QFrame" name="FreqGenChan2AmpUnitFrame_2">
+                 <widget class="QFrame" name="FreqGenChan1AmpUnitFrame">
                   <property name="enabled">
                    <bool>false</bool>
                   </property>
@@ -200,7 +200,7 @@
                     <number>1</number>
                    </property>
                    <item>
-                    <widget class="QLabel" name="label_12">
+                    <widget class="QLabel" name="labFreqGenChan1AmpUnit">
                      <property name="enabled">
                       <bool>false</bool>
                      </property>
@@ -210,7 +210,7 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QFrame" name="gridFrame">
+                    <widget class="QFrame" name="FreqGenChan1AmpUnitOptionsFrame">
                      <layout class="QGridLayout" name="gridLayout_43">
                       <property name="leftMargin">
                        <number>1</number>
@@ -255,7 +255,7 @@
                  </widget>
                 </item>
                 <item row="3" column="0">
-                 <widget class="QFrame" name="FreqGenChan2WaveformFrame_2">
+                 <widget class="QFrame" name="FreqGenChan1WaveformFrame">
                   <layout class="QVBoxLayout" name="verticalLayout_3">
                    <property name="spacing">
                     <number>6</number>
@@ -273,14 +273,14 @@
                     <number>1</number>
                    </property>
                    <item>
-                    <widget class="QLabel" name="label_14">
+                    <widget class="QLabel" name="labFreqGenChan1Waveform">
                      <property name="text">
                       <string>Waveform</string>
                      </property>
                     </widget>
                    </item>
                    <item>
-                    <widget class="QFrame" name="gridFrame">
+                    <widget class="QFrame" name="FreqGenChan1WaveformOptionsFrame">
                      <layout class="QGridLayout" name="gridLayout_44">
                       <property name="leftMargin">
                        <number>1</number>
@@ -366,7 +366,7 @@
                     <number>6</number>
                    </property>
                    <item row="1" column="0">
-                    <widget class="QLabel" name="label_38">
+                    <widget class="QLabel" name="labFreqGenChan1Amplitude">
                      <property name="enabled">
                       <bool>false</bool>
                      </property>
@@ -398,7 +398,7 @@
                     </widget>
                    </item>
                    <item row="0" column="0">
-                    <widget class="QLabel" name="label_39">
+                    <widget class="QLabel" name="labFreqGenChan1Frequency">
                      <property name="text">
                       <string>Frequency (Hz)</string>
                      </property>
@@ -483,7 +483,7 @@
                  </widget>
                 </item>
                 <item row="0" column="0">
-                 <widget class="QLabel" name="label_6">
+                 <widget class="QLabel" name="labVISAFreqGen">
                   <property name="text">
                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;VISA: &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
@@ -493,7 +493,7 @@
               </widget>
              </item>
              <item row="3" column="0">
-              <widget class="QGroupBox" name="FreqGenShearBox">
+              <widget class="QGroupBox" name="FreqGenChan2Box">
                <property name="title">
                 <string>Shear (Channel 2)</string>
                </property>
@@ -542,14 +542,14 @@
                     <number>1</number>
                    </property>
                    <item>
-                    <widget class="QLabel" name="label_37">
+                    <widget class="QLabel" name="labFreqGenChan2Waveform">
                      <property name="text">
                       <string>Waveform</string>
                      </property>
                     </widget>
                    </item>
                    <item>
-                    <widget class="QFrame" name="gridFrame_19">
+                    <widget class="QFrame" name="FreqGenChan2WaveformOptionsFrame">
                      <layout class="QGridLayout" name="gridLayout_66">
                       <property name="leftMargin">
                        <number>1</number>
@@ -644,14 +644,14 @@
                     </widget>
                    </item>
                    <item row="0" column="0">
-                    <widget class="QLabel" name="label_32">
+                    <widget class="QLabel" name="labFreqGenChan2Frequency">
                      <property name="text">
                       <string>Frequency (Hz)</string>
                      </property>
                     </widget>
                    </item>
                    <item row="1" column="0">
-                    <widget class="QLabel" name="label_31">
+                    <widget class="QLabel" name="labFreqGenChan2Amplitude">
                      <property name="enabled">
                       <bool>false</bool>
                      </property>
@@ -707,7 +707,7 @@
                     <number>1</number>
                    </property>
                    <item>
-                    <widget class="QLabel" name="label_36">
+                    <widget class="QLabel" name="labFreqGenChan2AmpUnit">
                      <property name="enabled">
                       <bool>false</bool>
                      </property>
@@ -717,7 +717,7 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QFrame" name="gridFrame_18">
+                    <widget class="QFrame" name="FreqGenChan2AmpUnitOptionsFrame">
                      <layout class="QGridLayout" name="gridLayout_65">
                       <property name="leftMargin">
                        <number>1</number>
@@ -773,8 +773,8 @@
       </widget>
      </item>
      <item row="0" column="2">
-      <widget class="QWidget" name="heightgroup" native="true">
-       <widget class="QWidget" name="gridWidget_7" native="true">
+      <widget class="QWidget" name="HeightGaugeZstageGroup" native="true">
+       <widget class="QWidget" name="HeightGaugeZstageWidget" native="true">
         <property name="geometry">
          <rect>
           <x>0</x>
@@ -863,7 +863,7 @@
                 <number>0</number>
                </property>
                <item row="0" column="0">
-                <widget class="QLabel" name="label_5">
+                <widget class="QLabel" name="labPortZStage">
                  <property name="text">
                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Port: &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
@@ -890,7 +890,7 @@
              </widget>
             </item>
             <item row="0" column="0">
-             <widget class="QLabel" name="labelZ_Stage">
+             <widget class="QLabel" name="labelZStage">
               <property name="sizePolicy">
                <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
                 <horstretch>0</horstretch>
@@ -912,7 +912,7 @@
              </widget>
             </item>
             <item row="4" column="0">
-             <widget class="QTabWidget" name="tabLockInNormal_3">
+             <widget class="QTabWidget" name="tabZStageFrame">
               <property name="sizePolicy">
                <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
                 <horstretch>0</horstretch>
@@ -926,7 +926,7 @@
                <attribute name="title">
                 <string>Position</string>
                </attribute>
-               <widget class="QFrame" name="gridFrame">
+               <widget class="QFrame" name="ZStageVoltFrame">
                 <property name="geometry">
                  <rect>
                   <x>0</x>
@@ -958,14 +958,14 @@
                   <number>3</number>
                  </property>
                  <item row="0" column="0">
-                  <widget class="QPushButton" name="pushButton_7">
+                  <widget class="QPushButton" name="ZStageVButton">
                    <property name="text">
                     <string>Voltage</string>
                    </property>
                   </widget>
                  </item>
                  <item row="0" column="1">
-                  <widget class="QDoubleSpinBox" name="doubleSpinBox_12">
+                  <widget class="QDoubleSpinBox" name="ZStageV">
                    <property name="maximum">
                     <double>140.000000000000000</double>
                    </property>
@@ -984,7 +984,7 @@
                <attribute name="title">
                 <string>Calibrate</string>
                </attribute>
-               <widget class="QWidget" name="LockInNormalFreqGenSettings_3" native="true">
+               <widget class="QWidget" name="ZStageCalibrateOptionsWidgetWidget" native="true">
                 <property name="geometry">
                  <rect>
                   <x>0</x>
@@ -1005,7 +1005,7 @@
                   <height>136</height>
                  </size>
                 </property>
-                <widget class="QWidget" name="gridWidget_5" native="true">
+                <widget class="QWidget" name="ZStageCalibrateOptionsWidget" native="true">
                  <property name="geometry">
                   <rect>
                    <x>0</x>
@@ -1031,28 +1031,28 @@
                    <number>3</number>
                   </property>
                   <item row="2" column="0">
-                   <widget class="QLabel" name="label_9">
+                   <widget class="QLabel" name="labZStageStepV">
                     <property name="text">
                      <string>Step Voltage</string>
                     </property>
                    </widget>
                   </item>
                   <item row="1" column="0">
-                   <widget class="QLabel" name="label_7">
+                   <widget class="QLabel" name="labZStageMaxV">
                     <property name="text">
                      <string>Max Voltage</string>
                     </property>
                    </widget>
                   </item>
                   <item row="0" column="0">
-                   <widget class="QLabel" name="label_8">
+                   <widget class="QLabel" name="labZStageMinV">
                     <property name="text">
                      <string>Min Voltage</string>
                     </property>
                    </widget>
                   </item>
                   <item row="0" column="1">
-                   <widget class="QDoubleSpinBox" name="doubleSpinBox_9">
+                   <widget class="QDoubleSpinBox" name="ZStageMinV">
                     <property name="maximum">
                      <double>140.000000000000000</double>
                     </property>
@@ -1062,7 +1062,7 @@
                    </widget>
                   </item>
                   <item row="1" column="1">
-                   <widget class="QDoubleSpinBox" name="doubleSpinBox_10">
+                   <widget class="QDoubleSpinBox" name="ZStageMaxV">
                     <property name="maximum">
                      <double>140.000000000000000</double>
                     </property>
@@ -1072,7 +1072,7 @@
                    </widget>
                   </item>
                   <item row="2" column="1">
-                   <widget class="QDoubleSpinBox" name="doubleSpinBox_11">
+                   <widget class="QDoubleSpinBox" name="ZStageStepV">
                     <property name="decimals">
                      <number>2</number>
                     </property>
@@ -1090,7 +1090,7 @@
                  </layout>
                 </widget>
                </widget>
-               <widget class="QPushButton" name="pushButton">
+               <widget class="QPushButton" name="ZStageCalibrateButton">
                 <property name="geometry">
                  <rect>
                   <x>0</x>
@@ -1193,7 +1193,7 @@
                 <number>0</number>
                </property>
                <item row="0" column="0">
-                <widget class="QLabel" name="label_4">
+                <widget class="QLabel" name="labHeightGaugePort">
                  <property name="text">
                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Port: &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
@@ -1213,7 +1213,7 @@
              </widget>
             </item>
             <item row="3" column="0">
-             <widget class="QFrame" name="gridFrame">
+             <widget class="QFrame" name="HeightGaugeUtilityFrame">
               <layout class="QGridLayout" name="gridLayout_29">
                <item row="0" column="0">
                 <widget class="QPushButton" name="HeightGaugeTare">
@@ -1256,8 +1256,8 @@
       </widget>
      </item>
      <item row="0" column="0">
-      <widget class="QWidget" name="lockinamplifiergroup" native="true">
-       <widget class="QWidget" name="verticalWidget_4" native="true">
+      <widget class="QWidget" name="LockInAmpGroup" native="true">
+       <widget class="QWidget" name="LockInAmpGroupWidget" native="true">
         <property name="geometry">
          <rect>
           <x>0</x>
@@ -1295,7 +1295,7 @@
           <number>3</number>
          </property>
          <item row="0" column="0">
-          <widget class="QFrame" name="LockInNormalFrame_4">
+          <widget class="QFrame" name="LockInNormalFrame">
            <property name="frameShape">
             <enum>QFrame::Shape::StyledPanel</enum>
            </property>
@@ -1832,7 +1832,7 @@
              </widget>
             </item>
             <item row="1" column="0">
-             <widget class="QFrame" name="frame">
+             <widget class="QFrame" name="SNLockInNormalFrame">
               <property name="sizePolicy">
                <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
                 <horstretch>0</horstretch>
@@ -1859,7 +1859,7 @@
                 <number>0</number>
                </property>
                <item row="0" column="0">
-                <widget class="QLabel" name="label">
+                <widget class="QLabel" name="labSNLockInNormal">
                  <property name="text">
                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;S/N:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
@@ -1895,7 +1895,7 @@
           </widget>
          </item>
          <item row="1" column="0">
-          <widget class="QFrame" name="LockInShearFrame_4">
+          <widget class="QFrame" name="LockInShearFrame">
            <property name="frameShape">
             <enum>QFrame::Shape::StyledPanel</enum>
            </property>
@@ -1916,7 +1916,7 @@
              <number>1</number>
             </property>
             <item row="0" column="0">
-             <widget class="QLabel" name="labelLockInNormal_2">
+             <widget class="QLabel" name="labLockInShear">
               <property name="sizePolicy">
                <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
                 <horstretch>0</horstretch>
@@ -2407,7 +2407,7 @@
              </widget>
             </item>
             <item row="1" column="0">
-             <widget class="QFrame" name="frame_2">
+             <widget class="QFrame" name="SNLockInShearFrame">
               <property name="sizePolicy">
                <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
                 <horstretch>0</horstretch>
@@ -2434,7 +2434,7 @@
                 <number>0</number>
                </property>
                <item row="0" column="0">
-                <widget class="QLabel" name="label_2">
+                <widget class="QLabel" name="labSNLockInShear">
                  <property name="text">
                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;S/N:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
