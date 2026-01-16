@@ -1159,7 +1159,7 @@
              </widget>
             </item>
             <item row="2" column="0">
-             <widget class="QPushButton" name="ConnecHeightGauge">
+             <widget class="QPushButton" name="ConnectHeightGauge">
               <property name="text">
                <string>Connect</string>
               </property>
@@ -1330,7 +1330,7 @@
                <attribute name="title">
                 <string>Time Constant</string>
                </attribute>
-               <widget class="QScrollBar" name="TimeNormaSlider">
+               <widget class="QScrollBar" name="TimeNormalSlider">
                 <property name="geometry">
                  <rect>
                   <x>0</x>
