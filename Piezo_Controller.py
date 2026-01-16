@@ -10,6 +10,7 @@ import time
 
 class E625:
     is_open = False
+    
     def __init__(self, SN: str = ""):
         self.pidevice: GCSDevice = GCSDevice("E-625")
         if len(SN) > 0:
@@ -19,6 +20,9 @@ class E625:
         self._stop = True
 
         self.target = "A"
+    
+    def __bool__(self) -> bool:
+        return self.is_open
     
     def connect(self, SN: str) -> None:
         self.pidevice.ConnectUSB(SN)

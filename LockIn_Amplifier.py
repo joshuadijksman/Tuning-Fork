@@ -39,6 +39,9 @@ class SR830:
         self.ser = serial.Serial(baudrate=9600, timeout=20)
         if len(SN) > 0:
             self.connect(SN=SN)
+    
+    def __bool__(self) -> bool:
+        return self.is_open
 
     def connect(self, SN: str) -> None:
         self.ser.port = str(find_unique_dev_by_serial_number(sn=SN)).split(" ")[0]

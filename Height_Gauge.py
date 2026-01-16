@@ -10,6 +10,9 @@ class mitutoyo(object):
         self.ser = serial.Serial(baudrate=115200)
         if len(port):
             self.connect(port)
+    
+    def __bool__(self) -> bool:
+        return self.is_open
 
     def connect(self, port: str = "") -> None:
         if port == "":
