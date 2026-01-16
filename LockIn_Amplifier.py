@@ -32,6 +32,8 @@ def find_unique_dev_by_serial_number(sn: str) -> ListPortInfo | None:
 
 
 class SR830:
+    is_open = False
+
     def __init__(self, *, readDrops: int = 3, SN: str = "") -> None:
         self.readDrops = readDrops
         self.ser = serial.Serial(baudrate=9600, timeout=20)
@@ -41,6 +43,7 @@ class SR830:
     def connect(self, SN: str) -> None:
         self.ser.port = str(find_unique_dev_by_serial_number(sn=SN)).split(" ")[0]
         self.ser.open()
+        self.is_open = True
 
     def _write(self, cmd: str) -> None:
         senddata = cmd + "\n\r"
@@ -255,6 +258,7 @@ class SR830:
 
     def close(self) -> None:
         self.ser.close()
+        self.is_open = False
 
     def __enter__(self):
         return self

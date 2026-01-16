@@ -9,6 +9,7 @@ import time
 
 
 class E625:
+    is_open = False
     def __init__(self, SN: str = ""):
         self.pidevice: GCSDevice = GCSDevice("E-625")
         if len(SN) > 0:
@@ -21,6 +22,7 @@ class E625:
     
     def connect(self, SN: str) -> None:
         self.pidevice.ConnectUSB(SN)
+        self.is_open = True
 
     def servoloop(self, closed=False) -> None:
         self.pidevice.SVO(self.target, closed)
@@ -84,6 +86,7 @@ class E625:
 
     def close(self) -> None:
         self.pidevice._cleanup()
+        self.is_open = False
 
     def __enter__(self):
         return self
