@@ -11,7 +11,7 @@ def main() -> None:
     ctrlNormal: SR830 = SR830(SN="A9JSTXTQA")
     ctrlShear: SR830 = SR830(SN="A9TQAG5OA")
     freqGen: RigolDG = RigolDG()
-    zStage = E625()
+    zStage = E625(SN="121019479")
     hDev = mitutoyo()
 
     freqGen.set_waveform(1, "SIN")
