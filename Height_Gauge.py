@@ -5,10 +5,15 @@ from LockIn_Amplifier import find_unique_dev_by_pidvid
 
 class mitutoyo(object):
     def __init__(self, port="") -> None:
+        self.ser = serial.Serial(baudrate=115200)
+        if len(port):
+            self.connect(port)
+
+    def connect(self, port: str = "") -> None:
         if port == "":
             port = str(find_unique_dev_by_pidvid(pid=0x4001, vid=0x0FE7)).split(" ")[0]
-            print("Using Mitutoyo port:", port)
-        self.ser = serial.Serial(port=port, baudrate=115200)
+        self.ser.port = port
+        self.ser.open()
 
     def answer(self) -> str:
         f = self.ser.read().decode()
@@ -59,3 +64,7 @@ class mitutoyo(object):
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         self.close()
+
+
+if __name__ == "__main__":
+    mitutoyo().close()
