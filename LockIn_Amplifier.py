@@ -32,10 +32,14 @@ def find_unique_dev_by_serial_number(sn: str) -> ListPortInfo | None:
 
 
 class SR830:
-    def __init__(self, SN: str, readDrops: int = 3) -> None:
-        port = str(find_unique_dev_by_serial_number(sn=SN)).split(" ")[0]
-        self.ser = serial.Serial(port, baudrate=9600, timeout=20)
+    def __init__(self, *, readDrops: int = 3, SN: str = "") -> None:
         self.readDrops = readDrops
+        if len(SN) > 0:
+            self.connect(SN=SN)
+
+    def connect(self, SN: str) -> None:
+        self.port = str(find_unique_dev_by_serial_number(sn=SN)).split(" ")[0]
+        self.ser = serial.Serial(self.port, baudrate=9600, timeout=20)
 
     def _write(self, cmd: str) -> None:
         senddata = cmd + "\n\r"
