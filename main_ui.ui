@@ -1351,8 +1351,20 @@
                   <height>142</height>
                  </size>
                 </property>
+                <property name="maximum">
+                 <number>19</number>
+                </property>
+                <property name="pageStep">
+                 <number>1</number>
+                </property>
                 <property name="orientation">
                  <enum>Qt::Orientation::Vertical</enum>
+                </property>
+                <property name="invertedAppearance">
+                 <bool>true</bool>
+                </property>
+                <property name="invertedControls">
+                 <bool>false</bool>
                 </property>
                </widget>
                <widget class="QWidget" name="TimeNormalGrid" native="true">
@@ -1378,9 +1390,9 @@
                 </property>
                 <layout class="QGridLayout" name="gridLayout_8">
                  <item row="2" column="0">
-                  <widget class="QRadioButton" name="TimeNormal2">
+                  <widget class="QRadioButton" name="TimeNormal3">
                    <property name="text">
-                    <string>2</string>
+                    <string>3</string>
                    </property>
                    <property name="autoExclusive">
                     <bool>false</bool>
@@ -1973,8 +1985,20 @@
                   <height>142</height>
                  </size>
                 </property>
+                <property name="maximum">
+                 <number>19</number>
+                </property>
+                <property name="pageStep">
+                 <number>1</number>
+                </property>
                 <property name="orientation">
                  <enum>Qt::Orientation::Vertical</enum>
+                </property>
+                <property name="invertedAppearance">
+                 <bool>true</bool>
+                </property>
+                <property name="invertedControls">
+                 <bool>false</bool>
                 </property>
                </widget>
                <widget class="QWidget" name="TimeShearGrid" native="true">
@@ -2000,9 +2024,9 @@
                 </property>
                 <layout class="QGridLayout" name="gridLayout_6">
                  <item row="2" column="0">
-                  <widget class="QRadioButton" name="TimeShear2">
+                  <widget class="QRadioButton" name="TimeShear3">
                    <property name="text">
-                    <string>2</string>
+                    <string>3</string>
                    </property>
                    <property name="autoExclusive">
                     <bool>false</bool>
