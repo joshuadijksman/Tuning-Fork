@@ -282,7 +282,6 @@ class UserInterface(QtWidgets.QMainWindow):
             self.Value = self.__table[self.IndexValue]
             if updateSlider:
                 self.slider.setValue(self.IndexValue)
-            print("New total: " + str(self.IndexValue))
 
         def __reverseIndex(self, index: int) -> tuple[int, int, int]:
             unit = index // 6
@@ -528,7 +527,6 @@ class UserInterface(QtWidgets.QMainWindow):
             self.Value = self.__table[self.IndexValue]
             if updateSlider:
                 self.slider.setValue(self.IndexValue)
-            print("New total: " + str(self.IndexValue))
 
         def __reverseIndex(self, index: int) -> tuple[int, int, int]:
             unit = index // 6
