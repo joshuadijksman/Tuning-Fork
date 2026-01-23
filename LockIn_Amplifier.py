@@ -175,9 +175,19 @@ class SR830:
         command = f"SENS {index}"
         self._write(command)
 
-    def readTimeConstant(self):
+    def readTimeConstant(self) -> int:
+        """
+        TODO: implement a fix/ check for this:
+
+        Time constants greater than 30s may NOT be set if the
+        harmonic x ref. frequency (detection frequency) exceeds 200 Hz. Time
+        constants shorter than the minimum time constant (based upon the filter
+        slope and dynamic reserve) will set the time constant to the minimum
+        allowed time constant. See the Gain and TIme Constant operation
+        section.
+        """
         command = "OFLT?"
-        return self._write_read(command)
+        return int(self._write_read(command))
 
     def setTimeConstant(self, index: int) -> None:
         """

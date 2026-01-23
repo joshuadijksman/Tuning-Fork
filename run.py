@@ -24,7 +24,21 @@ class ObjectsGroup:
 
 
 class UserInterface(QtWidgets.QMainWindow):
-    def __init__(self) -> None:
+    def __init__(self, **ports) -> None:
+        """
+        Main UI with functionality.
+
+        Can auto activate ports by adding them as variables when calling the function:
+        |System                   |Variable name    |Port type    |
+        |-------------------------|-----------------|-------------|
+        |Lock-In Amplifier Noraml |`SNLockInNormal` |Serial Number|
+        |Lock-In Amplifier Shear  |`SNLockInShear`  |Serial Number|
+        |*Frequency Generator     |`VisaFreqGen`    |Visa Adress  |
+        |Height Gauge             |`PortHeightGauge`|Serial Port  |
+        |Z-Stage Controller       |`SNZStage`       |Serial Number|
+
+        *The Frequency Generator can also be adressed by passing None.
+        """
         super().__init__()
 
         self.ui = Ui_MainWindow()
@@ -33,32 +47,35 @@ class UserInterface(QtWidgets.QMainWindow):
         # Lock-In Amplifier - Normal
         self.LockInNormalConnected = False
         self.ui.ConnectLockInNormal.clicked.connect(self.LockInNormalConnect)
-        self.LockInNormal = SR830()
+        self.LockInNormal = SR830(SN=ports.get("SNLockInNormal", ""))
 
         # Lock-In Amplifier - Shear
         self.LockInShearConnected = False
         self.ui.ConnectLockInShear.clicked.connect(self.LockInShearConnect)
-        self.LockInShear = SR830()
+        self.LockInShear = SR830(SN=ports.get("SNLockInShear", ""))
 
         # Frequency Generator
         self.FreqGenConnected = False
         self.ui.ConnectFreqGen.clicked.connect(self.FreqGenConnect)
-        self.FreqGen: RigolDG
+        if "VisaFreqGen" in ports:
+            self.FreqGen = RigolDG(ports.get("VisaFreqGen"))
+        else:
+            self.FreqGen: RigolDG
 
         # Height Gauge
         self.HeightGaugeConnected = False
         self.ui.ConnectHeightGauge.clicked.connect(self.HeightGaugeConnect)
-        self.HeightGauge = mitutoyo()
+        self.HeightGauge = mitutoyo(port=ports.get("PortHeightGauge", ""))
 
         # Z-Stage Controller
         self.ZStageConnected = False
         self.ui.ConnectZStage.clicked.connect(self.ZStageConnect)
-        self.ZStage = E625()
+        self.ZStage = E625(SN=ports.get("SNZStage", ""))
 
-        self.TimeConstNormal = self.TimeConstantLockInNormal(self.ui)
-        self.SensNormal = self.SensitivityLockInNormal(self.ui)
-        self.TimeConstShear = self.TimeConstantLockInShear(self.ui)
-        self.SensShear = self.SensitivityLockInShear(self.ui)
+        self.TimeConstNormal = self.TimeConstantLockInNormal(self.ui, self.LockInNormal)
+        self.SensNormal = self.SensitivityLockInNormal(self.ui, self.LockInNormal)
+        self.TimeConstShear = self.TimeConstantLockInShear(self.ui, self.LockInShear)
+        self.SensShear = self.SensitivityLockInShear(self.ui, self.LockInShear)
 
     def LockInNormalConnect(self) -> None:
         def Connect(SN) -> None:
@@ -146,7 +163,7 @@ class UserInterface(QtWidgets.QMainWindow):
             ).start()
 
     def HeightGaugeConnect(self) -> None:
-        def Connect(port):
+        def Connect(port) -> None:
             try:
                 self.HeightGauge.connect(port=port)
                 self.ui.ConnectHeightGauge.setText("Connected")
@@ -171,7 +188,7 @@ class UserInterface(QtWidgets.QMainWindow):
             ).start()
 
     def ZStageConnect(self) -> None:
-        def Connect(SN):
+        def Connect(SN) -> None:
             try:
                 self.ZStage.connect(SN=SN)
                 self.ui.ConnectZStage.setText("Connected")
@@ -225,7 +242,7 @@ class UserInterface(QtWidgets.QMainWindow):
         IndexValue: int = BaseIndex + 2 * MultIndex + 6 * UnitIndex - 2
         Value: float = __table[IndexValue]
 
-        def __init__(self, ui: Ui_MainWindow) -> None:
+        def __init__(self, ui: Ui_MainWindow, LockInAmp: SR830) -> None:
             """
             Sets the time constant
 
@@ -255,6 +272,14 @@ class UserInterface(QtWidgets.QMainWindow):
             | 19    | 30 ks         |
             """
             self.widget = ui.TimeConstantNormal
+            
+            self.LockInAmp = LockInAmp
+            if self.LockInAmp:
+                self.Base, self.Mult, self.Unit = self.__reverseIndex(
+                    self.LockInAmp.readTimeConstant()
+                )
+            else:
+                self.widget.setEnabled(False)
 
             self.slider = ui.TimeNormalSlider
 
@@ -303,6 +328,8 @@ class UserInterface(QtWidgets.QMainWindow):
                 self.slider.blockSignals(True)
                 self.slider.setValue(self.IndexValue)
                 self.slider.blockSignals(False)
+            if self.LockInAmp:
+                self.LockInAmp.setTimeConstant(self.IndexValue)
 
         def __reverseIndex(self, index: int) -> tuple[int, int, int]:
             unit = index // 6
@@ -489,7 +516,7 @@ class UserInterface(QtWidgets.QMainWindow):
         IndexValue: int = BaseIndex + 3 * MultIndex + 9 * UnitIndex - 1
         Value: float = __table[IndexValue]
 
-        def __init__(self, ui: Ui_MainWindow) -> None:
+        def __init__(self, ui: Ui_MainWindow, LockInAmp: SR830) -> None:
             """
             Sets lock in amplifiers sensitivity
 
@@ -527,6 +554,14 @@ class UserInterface(QtWidgets.QMainWindow):
             | 26    | 1 V/\u00b5A    |
             """
             self.widget = ui.SensitivityNormal
+
+            self.LockInAmp = LockInAmp
+            if self.LockInAmp:
+                self.Base, self.Mult, self.Unit = self.__reverseIndex(
+                    self.LockInAmp.readTimeConstant()
+                )
+            else:
+                self.widget.setEnabled(False)
 
             self.slider = ui.SensNormalSlider
             self.slider.valueChanged.connect(self.UpdateSlider)
@@ -579,6 +614,8 @@ class UserInterface(QtWidgets.QMainWindow):
                 self.slider.blockSignals(True)
                 self.slider.setValue(self.IndexValue)
                 self.slider.blockSignals(False)
+            if self.LockInAmp:
+                self.LockInAmp.setTimeConstant(self.IndexValue)
 
         def __reverseIndex(self, index: int) -> tuple[int, int, int]:
             unit = index // 9
@@ -591,7 +628,7 @@ class UserInterface(QtWidgets.QMainWindow):
             index = self.slider.value() + 1  # Compensation for 1e-9
 
             self.Base, self.Mult, self.Unit = self.__reverseIndex(index)
-            
+
             match self.Base:
                 case 0:
                     self.Sens1.setChecked(True)
@@ -724,7 +761,6 @@ class UserInterface(QtWidgets.QMainWindow):
                     self.UpdateC01()
                     return
             self.__updateTotal()
-            
 
         def UpdateC21(self) -> None:
             if not self.Sens1.isEnabled():
@@ -799,7 +835,7 @@ class UserInterface(QtWidgets.QMainWindow):
         IndexValue: int = BaseIndex + 2 * MultIndex + 6 * UnitIndex - 2
         Value: float = __table[IndexValue]
 
-        def __init__(self, ui: Ui_MainWindow) -> None:
+        def __init__(self, ui: Ui_MainWindow, LockInAmp: SR830) -> None:
             """
             Sets the time constant
 
@@ -829,6 +865,14 @@ class UserInterface(QtWidgets.QMainWindow):
             | 19    | 30 ks         |
             """
             self.widget = ui.TimeConstantShear
+
+            self.LockInAmp = LockInAmp
+            if self.LockInAmp:
+                self.Base, self.Mult, self.Unit = self.__reverseIndex(
+                    self.LockInAmp.readTimeConstant()
+                )
+            else:
+                self.widget.setEnabled(False)
 
             self.slider = ui.TimeShearSlider
             self.slider.valueChanged.connect(self.UpdateSlider)
@@ -878,6 +922,8 @@ class UserInterface(QtWidgets.QMainWindow):
                 self.slider.blockSignals(True)
                 self.slider.setValue(self.IndexValue)
                 self.slider.blockSignals(False)
+            if self.LockInAmp:
+                self.LockInAmp.setTimeConstant(self.IndexValue)
 
         def __reverseIndex(self, index: int) -> tuple[int, int, int]:
             unit = index // 6
@@ -1063,7 +1109,7 @@ class UserInterface(QtWidgets.QMainWindow):
         IndexValue: int = BaseIndex + 3 * MultIndex + 9 * UnitIndex - 1
         Value: float = __table[IndexValue]
 
-        def __init__(self, ui: Ui_MainWindow) -> None:
+        def __init__(self, ui: Ui_MainWindow, LockInAmp: SR830) -> None:
             """
             Sets lock in amplifiers sensitivity
 
@@ -1102,6 +1148,14 @@ class UserInterface(QtWidgets.QMainWindow):
             """
             self.widget = ui.SensitivityShear
 
+            self.LockInAmp = LockInAmp
+            if self.LockInAmp:
+                self.Base, self.Mult, self.Unit = self.__reverseIndex(
+                    self.LockInAmp.readTimeConstant()
+                )
+            else:
+                self.widget.setEnabled(False)
+
             self.slider = ui.SensShearSlider
             self.slider.valueChanged.connect(self.UpdateSlider)
 
@@ -1116,7 +1170,6 @@ class UserInterface(QtWidgets.QMainWindow):
             self.SensmV = ui.SensShearmV
             self.SensV = ui.SensShearV
 
-            
             self.BaseGroup = QtWidgets.QButtonGroup()
             self.Sens1.pressed.connect(self.UpdateC00)
             self.BaseGroup.addButton(self.Sens1)
@@ -1154,6 +1207,8 @@ class UserInterface(QtWidgets.QMainWindow):
                 self.slider.blockSignals(True)
                 self.slider.setValue(self.IndexValue)
                 self.slider.blockSignals(False)
+            if self.LockInAmp:
+                self.LockInAmp.setTimeConstant(self.IndexValue)
 
         def __reverseIndex(self, index: int) -> tuple[int, int, int]:
             unit = index // 9
@@ -1166,7 +1221,7 @@ class UserInterface(QtWidgets.QMainWindow):
             index = self.slider.value() + 1  # Compensation for 1e-9
 
             self.Base, self.Mult, self.Unit = self.__reverseIndex(index)
-            
+
             match self.Base:
                 case 0:
                     self.Sens1.setChecked(True)
@@ -1299,7 +1354,6 @@ class UserInterface(QtWidgets.QMainWindow):
                     self.UpdateC01()
                     return
             self.__updateTotal()
-            
 
         def UpdateC21(self) -> None:
             if not self.Sens1.isEnabled():
