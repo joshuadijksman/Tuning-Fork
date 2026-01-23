@@ -226,18 +226,37 @@ class UserInterface(QtWidgets.QMainWindow):
         Value: float = __table[IndexValue]
 
         def __init__(self, ui: Ui_MainWindow) -> None:
+            """
+            Sets the time constant
+
+            Time constant sets the duration that the Lock-In Amplifier watches the wave. Make sure `time constant > 1/freq`.
+
+            | index | time constant |
+            |-------|---------------|
+            | 0     | 10 \u00b5s    |
+            | 1     | 30 \u00b5s    |
+            | 2     | 100 \u00b5s   |
+            | 3     | 300 \u00b5s   |
+            | 4     | 1 ms          |
+            | 5     | 3 ms          |
+            | 6     | 10 ms         |
+            | 7     | 30 ms         |
+            | 8     | 100 ms        |
+            | 9     | 300 ms        |
+            | 10    | 1 s           |
+            | 11    | 3 s           |
+            | 12    | 10 s          |
+            | 13    | 30 s          |
+            | 14    | 100 s         |
+            | 15    | 300 s         |
+            | 16    | 1 ks          |
+            | 17    | 3 ks          |
+            | 18    | 10 ks         |
+            | 19    | 30 ks         |
+            """
             self.widget = ui.TimeConstantNormal
 
             self.slider = ui.TimeNormalSlider
-            self.slider.valueChanged.connect(self.UpdateSlider)
-
-            # To update in next ui change
-            self.slider.setMinimum(0)
-            self.slider.setMaximum(19)
-            self.slider.setInvertedAppearance(True)
-            self.slider.setInvertedControls(False)
-            self.slider.setSingleStep(1)
-            self.slider.setPageStep(1)
 
             self.Time1 = ui.TimeNormal1
             self.Time3 = ui.TimeNormal3
@@ -281,7 +300,9 @@ class UserInterface(QtWidgets.QMainWindow):
             )
             self.Value = self.__table[self.IndexValue]
             if updateSlider:
+                self.slider.blockSignals(True)
                 self.slider.setValue(self.IndexValue)
+                self.slider.blockSignals(False)
 
         def __reverseIndex(self, index: int) -> tuple[int, int, int]:
             unit = index // 6
@@ -430,21 +451,321 @@ class UserInterface(QtWidgets.QMainWindow):
                 self.__updateTotal()
 
     class SensitivityLockInNormal:
+        __table = [
+            2e-9,
+            5e-9,
+            10e-9,
+            20e-9,
+            50e-9,
+            100e-9,
+            200e-9,
+            500e-9,
+            1e-6,
+            2e-6,
+            5e-6,
+            10e-6,
+            20e-6,
+            50e-6,
+            100e-6,
+            200e-6,
+            500e-6,
+            1e-3,
+            2e-3,
+            5e-3,
+            10e-3,
+            20e-3,
+            50e-3,
+            100e-3,
+            200e-3,
+            500e-3,
+            1e0,
+        ]
+        # Indices for the table above
+        # Table is from the manual of the SR830
+        # User might notice that there is no 1e-6/3e-6 and 100e3/300e3. Limitations of SR830
+        BaseIndex: int = 0
+        MultIndex: int = 0
+        UnitIndex: int = 2
+        IndexValue: int = BaseIndex + 3 * MultIndex + 9 * UnitIndex - 1
+        Value: float = __table[IndexValue]
+
         def __init__(self, ui: Ui_MainWindow) -> None:
+            """
+            Sets lock in amplifiers sensitivity
+
+            Boosts Amplitude if too low.
+
+            ## Sensitivity Table
+            | index | sensitivity    |
+            |-------|----------------|
+            | 0     | 2 nV/fA        |
+            | 1     | 5 nV/fA        |
+            | 2     | 10 nV/fA       |
+            | 3     | 20 nV/fA       |
+            | 4     | 50 nV/fA       |
+            | 5     | 100 nV/fA      |
+            | 6     | 200 nV/fA      |
+            | 7     | 500 nV/fA      |
+            | 8     | 1 \u00b5V/fA   |
+            | 9     | 2 \u00b5V/fA   |
+            | 10    | 5 \u00b5V/fA   |
+            | 11    | 10 \u00b5V/fA  |
+            | 12    | 20 \u00b5V/fA  |
+            | 13    | 50 \u00b5V/fA  |
+            | 14    | 100 \u00b5V/fA |
+            | 15    | 200 \u00b5V/fA |
+            | 16    | 500 \u00b5V/fA |
+            | 17    | 1 mV/nA        |
+            | 18    | 2 mV/nA        |
+            | 19    | 5 mV/nA        |
+            | 20    | 10 mV/nA       |
+            | 21    | 20 mV/nA       |
+            | 22    | 50 mV/nA       |
+            | 23    | 100 mV/nA      |
+            | 24    | 200 mV/nA      |
+            | 25    | 500 mV/nA      |
+            | 26    | 1 V/\u00b5A    |
+            """
             self.widget = ui.SensitivityNormal
 
             self.slider = ui.SensNormalSlider
+            self.slider.valueChanged.connect(self.UpdateSlider)
 
             self.Sens1 = ui.SensNormal1
-            self.Sens3 = ui.SensNormal3
+            self.Sens2 = ui.SensNormal2
             self.Sens5 = ui.SensNormal5
             self.Sensx1 = ui.SensNormalx1
             self.Sensx10 = ui.SensNormalx10
             self.Sensx100 = ui.SensNormalx100
-            self.Sensmicros = ui.SensNormalnV
-            self.Sensms = ui.SensNormalmicroV
-            self.Senss = ui.SensNormalmV
-            self.Sensks = ui.SensNormalV
+            self.SensnV = ui.SensNormalnV
+            self.SensmicroV = ui.SensNormalmicroV
+            self.SensmV = ui.SensNormalmV
+            self.SensV = ui.SensNormalV
+
+            self.BaseGroup = QtWidgets.QButtonGroup()
+            self.Sens1.pressed.connect(self.UpdateC00)
+            self.BaseGroup.addButton(self.Sens1)
+            self.Sens2.pressed.connect(self.UpdateC01)
+            self.BaseGroup.addButton(self.Sens2)
+            self.Sens5.pressed.connect(self.UpdateC02)
+            self.BaseGroup.addButton(self.Sens5)
+
+            self.MultGroup = QtWidgets.QButtonGroup()
+            self.Sensx1.pressed.connect(self.UpdateC10)
+            self.MultGroup.addButton(self.Sensx1)
+            self.Sensx10.pressed.connect(self.UpdateC11)
+            self.MultGroup.addButton(self.Sensx10)
+            self.Sensx100.pressed.connect(self.UpdateC12)
+            self.MultGroup.addButton(self.Sensx100)
+
+            self.UnitGroup = QtWidgets.QButtonGroup()
+            self.SensnV.pressed.connect(self.UpdateC20)
+            self.UnitGroup.addButton(self.SensnV)
+            self.SensmicroV.pressed.connect(self.UpdateC21)
+            self.UnitGroup.addButton(self.SensmicroV)
+            self.SensmV.pressed.connect(self.UpdateC22)
+            self.UnitGroup.addButton(self.SensmV)
+            self.SensV.pressed.connect(self.UpdateC23)
+            self.UnitGroup.addButton(self.SensV)
+
+            self.slider.setValue(self.IndexValue)
+
+        def __updateTotal(self, updateSlider: bool = True) -> None:
+            self.IndexValue = (
+                self.BaseIndex + 3 * self.MultIndex + 9 * self.UnitIndex - 1
+            )
+            self.Value = self.__table[self.IndexValue]
+            if updateSlider:
+                self.slider.blockSignals(True)
+                self.slider.setValue(self.IndexValue)
+                self.slider.blockSignals(False)
+
+        def __reverseIndex(self, index: int) -> tuple[int, int, int]:
+            unit = index // 9
+            rem = index % 9
+            mult = rem // 3
+            base = rem % 3
+            return base, mult, unit
+
+        def UpdateSlider(self) -> None:
+            index = self.slider.value() + 1  # Compensation for 1e-9
+
+            self.Base, self.Mult, self.Unit = self.__reverseIndex(index)
+            
+            match self.Base:
+                case 0:
+                    self.Sens1.setChecked(True)
+                    self.BaseIndex = 0
+
+                case 1:
+                    self.Sens2.setChecked(True)
+                    self.BaseIndex = 1
+
+                case 2:
+                    self.Sens5.setChecked(True)
+                    self.BaseIndex = 2
+
+            match self.Mult:
+                case 0:
+                    self.Sensx1.setChecked(True)
+                    self.MultIndex = 0
+
+                case 1:
+                    if not self.Sens1.isEnabled():
+                        self.Sens1.setEnabled(True)
+                    self.Sensx10.setChecked(True)
+                    self.MultIndex = 1
+
+                case 2:
+                    if not self.Sens1.isEnabled():
+                        self.Sens1.setEnabled(True)
+                    self.Sensx100.setChecked(True)
+                    self.MultIndex = 2
+
+            match self.Unit:
+                case 0:
+                    if self.MultIndex == 0:
+                        self.Sens1.setEnabled(False)
+                    if self.UnitIndex == 3:
+                        self.Sens2.setEnabled(True)
+                        self.Sens5.setEnabled(True)
+                        self.Sensx10.setEnabled(True)
+                        self.Sensx100.setEnabled(True)
+
+                    self.SensnV.setChecked(True)
+                    self.UnitIndex = 0
+
+                case 1:
+                    if not self.Sens1.isEnabled():
+                        self.Sens1.setEnabled(True)
+
+                    if self.UnitIndex == 3:
+                        self.Sens2.setEnabled(True)
+                        self.Sens5.setEnabled(True)
+                        self.Sensx10.setEnabled(True)
+                        self.Sensx100.setEnabled(True)
+
+                    self.SensmicroV.setChecked(True)
+                    self.UnitIndex = 1
+
+                case 2:
+                    if not self.Sens1.isEnabled():
+                        self.Sens1.setEnabled(True)
+                    if self.UnitIndex == 3:
+                        self.Sens2.setEnabled(True)
+                        self.Sens5.setEnabled(True)
+                        self.Sensx10.setEnabled(True)
+                        self.Sensx100.setEnabled(True)
+
+                    self.SensmV.setChecked(True)
+                    self.UnitIndex = 2
+
+                case 3:
+                    self.Sens2.setEnabled(False)
+                    self.Sens5.setEnabled(False)
+                    self.Sensx10.setEnabled(False)
+                    self.Sensx100.setEnabled(False)
+
+                    if not self.Sens1.isEnabled():
+                        self.Sens1.setEnabled(True)
+
+                    self.SensV.setChecked(True)
+                    self.UnitIndex = 3
+
+            self.__updateTotal(False)
+
+        # See GUI from bottom left to top right.
+        # This is more logical than top left to bottom right, trust me...
+        # Left Column
+        def UpdateC00(self) -> None:
+            self.BaseIndex = 0
+            self.__updateTotal()
+
+        def UpdateC01(self) -> None:
+            self.BaseIndex = 1
+            self.__updateTotal()
+
+        def UpdateC02(self) -> None:
+            self.BaseIndex = 2
+            self.__updateTotal()
+
+        # Middle Column
+        def UpdateC10(self) -> None:
+            self.MultIndex = 0
+            self.__updateTotal()
+
+        def UpdateC11(self) -> None:
+            if not self.Sens1.isEnabled():
+                self.Sens1.setEnabled(True)
+            self.MultIndex = 1
+            self.__updateTotal()
+
+        def UpdateC12(self) -> None:
+            if not self.Sens1.isEnabled():
+                self.Sens1.setEnabled(True)
+            self.MultIndex = 2
+            self.__updateTotal()
+
+        # Right Column
+        def UpdateC20(self) -> None:
+            if self.UnitIndex == 3:
+                self.Sens2.setEnabled(True)
+                self.Sens5.setEnabled(True)
+                self.Sensx10.setEnabled(True)
+                self.Sensx100.setEnabled(True)
+
+            self.UnitIndex = 0
+
+            # 1e-9 does not exist
+            if self.MultIndex == 0:
+                self.Sens1.setEnabled(False)
+                if self.BaseIndex == 0:
+                    self.Sens2.setChecked(True)
+                    self.UpdateC01()
+                    return
+            self.__updateTotal()
+            
+
+        def UpdateC21(self) -> None:
+            if not self.Sens1.isEnabled():
+                self.Sens1.setEnabled(True)
+            if self.UnitIndex == 3:
+                self.Sens2.setEnabled(True)
+                self.Sens5.setEnabled(True)
+                self.Sensx10.setEnabled(True)
+                self.Sensx100.setEnabled(True)
+            self.UnitIndex = 1
+            self.__updateTotal()
+
+        def UpdateC22(self) -> None:
+            if not self.Sens1.isEnabled():
+                self.Sens1.setEnabled(True)
+            if self.UnitIndex == 3:
+                self.Sens2.setEnabled(True)
+                self.Sens5.setEnabled(True)
+                self.Sensx10.setEnabled(True)
+                self.Sensx100.setEnabled(True)
+            self.UnitIndex = 2
+            self.__updateTotal()
+
+        def UpdateC23(self) -> None:
+            if not self.Sens1.isEnabled():
+                self.Sens1.setEnabled(True)
+
+            self.UnitIndex = 3
+
+            # 2e0 to 500e0 do not exist
+            self.Sens2.setEnabled(False)
+            self.Sens5.setEnabled(False)
+            self.Sensx10.setEnabled(False)
+            self.Sensx100.setEnabled(False)
+            if self.BaseIndex != 0:
+                self.Sens1.setChecked(True)
+                self.BaseIndex = 0
+            if self.MultIndex != 0:
+                self.Sensx1.setChecked(True)
+                self.MultIndex = 0
+            self.__updateTotal()
 
     class TimeConstantLockInShear:
         __table = [
@@ -479,6 +800,34 @@ class UserInterface(QtWidgets.QMainWindow):
         Value: float = __table[IndexValue]
 
         def __init__(self, ui: Ui_MainWindow) -> None:
+            """
+            Sets the time constant
+
+            Time constant sets the duration that the Lock-In Amplifier watches the wave. Make sure `time constant > 1/freq`.
+
+            | index | time constant |
+            |-------|---------------|
+            | 0     | 10 \u00b5s    |
+            | 1     | 30 \u00b5s    |
+            | 2     | 100 \u00b5s   |
+            | 3     | 300 \u00b5s   |
+            | 4     | 1 ms          |
+            | 5     | 3 ms          |
+            | 6     | 10 ms         |
+            | 7     | 30 ms         |
+            | 8     | 100 ms        |
+            | 9     | 300 ms        |
+            | 10    | 1 s           |
+            | 11    | 3 s           |
+            | 12    | 10 s          |
+            | 13    | 30 s          |
+            | 14    | 100 s         |
+            | 15    | 300 s         |
+            | 16    | 1 ks          |
+            | 17    | 3 ks          |
+            | 18    | 10 ks         |
+            | 19    | 30 ks         |
+            """
             self.widget = ui.TimeConstantShear
 
             self.slider = ui.TimeShearSlider
@@ -526,7 +875,9 @@ class UserInterface(QtWidgets.QMainWindow):
             )
             self.Value = self.__table[self.IndexValue]
             if updateSlider:
+                self.slider.blockSignals(True)
                 self.slider.setValue(self.IndexValue)
+                self.slider.blockSignals(False)
 
         def __reverseIndex(self, index: int) -> tuple[int, int, int]:
             unit = index // 6
@@ -674,20 +1025,322 @@ class UserInterface(QtWidgets.QMainWindow):
                 self.__updateTotal()
 
     class SensitivityLockInShear:
+        __table = [
+            2e-9,
+            5e-9,
+            10e-9,
+            20e-9,
+            50e-9,
+            100e-9,
+            200e-9,
+            500e-9,
+            1e-6,
+            2e-6,
+            5e-6,
+            10e-6,
+            20e-6,
+            50e-6,
+            100e-6,
+            200e-6,
+            500e-6,
+            1e-3,
+            2e-3,
+            5e-3,
+            10e-3,
+            20e-3,
+            50e-3,
+            100e-3,
+            200e-3,
+            500e-3,
+            1e0,
+        ]
+        # Indices for the table above
+        # Table is from the manual of the SR830
+        # User might notice that there is no 1e-6/3e-6 and 100e3/300e3. Limitations of SR830
+        BaseIndex: int = 0
+        MultIndex: int = 0
+        UnitIndex: int = 2
+        IndexValue: int = BaseIndex + 3 * MultIndex + 9 * UnitIndex - 1
+        Value: float = __table[IndexValue]
+
         def __init__(self, ui: Ui_MainWindow) -> None:
-            self.slider = ui.SensShearSlider
+            """
+            Sets lock in amplifiers sensitivity
+
+            Boosts Amplitude if too low.
+
+            ## Sensitivity Table
+            | index | sensitivity    |
+            |-------|----------------|
+            | 0     | 2 nV/fA        |
+            | 1     | 5 nV/fA        |
+            | 2     | 10 nV/fA       |
+            | 3     | 20 nV/fA       |
+            | 4     | 50 nV/fA       |
+            | 5     | 100 nV/fA      |
+            | 6     | 200 nV/fA      |
+            | 7     | 500 nV/fA      |
+            | 8     | 1 \u00b5V/fA   |
+            | 9     | 2 \u00b5V/fA   |
+            | 10    | 5 \u00b5V/fA   |
+            | 11    | 10 \u00b5V/fA  |
+            | 12    | 20 \u00b5V/fA  |
+            | 13    | 50 \u00b5V/fA  |
+            | 14    | 100 \u00b5V/fA |
+            | 15    | 200 \u00b5V/fA |
+            | 16    | 500 \u00b5V/fA |
+            | 17    | 1 mV/nA        |
+            | 18    | 2 mV/nA        |
+            | 19    | 5 mV/nA        |
+            | 20    | 10 mV/nA       |
+            | 21    | 20 mV/nA       |
+            | 22    | 50 mV/nA       |
+            | 23    | 100 mV/nA      |
+            | 24    | 200 mV/nA      |
+            | 25    | 500 mV/nA      |
+            | 26    | 1 V/\u00b5A    |
+            """
             self.widget = ui.SensitivityShear
 
+            self.slider = ui.SensShearSlider
+            self.slider.valueChanged.connect(self.UpdateSlider)
+
             self.Sens1 = ui.SensShear1
-            self.Sens3 = ui.SensShear3
+            self.Sens2 = ui.SensShear2
             self.Sens5 = ui.SensShear5
             self.Sensx1 = ui.SensShearx1
             self.Sensx10 = ui.SensShearx10
             self.Sensx100 = ui.SensShearx100
-            self.Sensmicros = ui.SensShearnV
-            self.Sensms = ui.SensShearmicroV
-            self.Senss = ui.SensShearmV
-            self.Sensks = ui.SensShearV
+            self.SensnV = ui.SensShearnV
+            self.SensmicroV = ui.SensShearmicroV
+            self.SensmV = ui.SensShearmV
+            self.SensV = ui.SensShearV
+
+            
+            self.BaseGroup = QtWidgets.QButtonGroup()
+            self.Sens1.pressed.connect(self.UpdateC00)
+            self.BaseGroup.addButton(self.Sens1)
+            self.Sens2.pressed.connect(self.UpdateC01)
+            self.BaseGroup.addButton(self.Sens2)
+            self.Sens5.pressed.connect(self.UpdateC02)
+            self.BaseGroup.addButton(self.Sens5)
+
+            self.MultGroup = QtWidgets.QButtonGroup()
+            self.Sensx1.pressed.connect(self.UpdateC10)
+            self.MultGroup.addButton(self.Sensx1)
+            self.Sensx10.pressed.connect(self.UpdateC11)
+            self.MultGroup.addButton(self.Sensx10)
+            self.Sensx100.pressed.connect(self.UpdateC12)
+            self.MultGroup.addButton(self.Sensx100)
+
+            self.UnitGroup = QtWidgets.QButtonGroup()
+            self.SensnV.pressed.connect(self.UpdateC20)
+            self.UnitGroup.addButton(self.SensnV)
+            self.SensmicroV.pressed.connect(self.UpdateC21)
+            self.UnitGroup.addButton(self.SensmicroV)
+            self.SensmV.pressed.connect(self.UpdateC22)
+            self.UnitGroup.addButton(self.SensmV)
+            self.SensV.pressed.connect(self.UpdateC23)
+            self.UnitGroup.addButton(self.SensV)
+
+            self.slider.setValue(self.IndexValue)
+
+        def __updateTotal(self, updateSlider: bool = True) -> None:
+            self.IndexValue = (
+                self.BaseIndex + 3 * self.MultIndex + 9 * self.UnitIndex - 1
+            )
+            self.Value = self.__table[self.IndexValue]
+            if updateSlider:
+                self.slider.blockSignals(True)
+                self.slider.setValue(self.IndexValue)
+                self.slider.blockSignals(False)
+
+        def __reverseIndex(self, index: int) -> tuple[int, int, int]:
+            unit = index // 9
+            rem = index % 9
+            mult = rem // 3
+            base = rem % 3
+            return base, mult, unit
+
+        def UpdateSlider(self) -> None:
+            index = self.slider.value() + 1  # Compensation for 1e-9
+
+            self.Base, self.Mult, self.Unit = self.__reverseIndex(index)
+            
+            match self.Base:
+                case 0:
+                    self.Sens1.setChecked(True)
+                    self.BaseIndex = 0
+
+                case 1:
+                    self.Sens2.setChecked(True)
+                    self.BaseIndex = 1
+
+                case 2:
+                    self.Sens5.setChecked(True)
+                    self.BaseIndex = 2
+
+            match self.Mult:
+                case 0:
+                    self.Sensx1.setChecked(True)
+                    self.MultIndex = 0
+
+                case 1:
+                    if not self.Sens1.isEnabled():
+                        self.Sens1.setEnabled(True)
+                    self.Sensx10.setChecked(True)
+                    self.MultIndex = 1
+
+                case 2:
+                    if not self.Sens1.isEnabled():
+                        self.Sens1.setEnabled(True)
+                    self.Sensx100.setChecked(True)
+                    self.MultIndex = 2
+
+            match self.Unit:
+                case 0:
+                    if self.MultIndex == 0:
+                        self.Sens1.setEnabled(False)
+                    if self.UnitIndex == 3:
+                        self.Sens2.setEnabled(True)
+                        self.Sens5.setEnabled(True)
+                        self.Sensx10.setEnabled(True)
+                        self.Sensx100.setEnabled(True)
+
+                    self.SensnV.setChecked(True)
+                    self.UnitIndex = 0
+
+                case 1:
+                    if not self.Sens1.isEnabled():
+                        self.Sens1.setEnabled(True)
+
+                    if self.UnitIndex == 3:
+                        self.Sens2.setEnabled(True)
+                        self.Sens5.setEnabled(True)
+                        self.Sensx10.setEnabled(True)
+                        self.Sensx100.setEnabled(True)
+
+                    self.SensmicroV.setChecked(True)
+                    self.UnitIndex = 1
+
+                case 2:
+                    if not self.Sens1.isEnabled():
+                        self.Sens1.setEnabled(True)
+                    if self.UnitIndex == 3:
+                        self.Sens2.setEnabled(True)
+                        self.Sens5.setEnabled(True)
+                        self.Sensx10.setEnabled(True)
+                        self.Sensx100.setEnabled(True)
+
+                    self.SensmV.setChecked(True)
+                    self.UnitIndex = 2
+
+                case 3:
+                    self.Sens2.setEnabled(False)
+                    self.Sens5.setEnabled(False)
+                    self.Sensx10.setEnabled(False)
+                    self.Sensx100.setEnabled(False)
+
+                    if not self.Sens1.isEnabled():
+                        self.Sens1.setEnabled(True)
+
+                    self.SensV.setChecked(True)
+                    self.UnitIndex = 3
+
+            self.__updateTotal(False)
+
+        # See GUI from bottom left to top right.
+        # This is more logical than top left to bottom right, trust me...
+        # Left Column
+        def UpdateC00(self) -> None:
+            self.BaseIndex = 0
+            self.__updateTotal()
+
+        def UpdateC01(self) -> None:
+            self.BaseIndex = 1
+            self.__updateTotal()
+
+        def UpdateC02(self) -> None:
+            self.BaseIndex = 2
+            self.__updateTotal()
+
+        # Middle Column
+        def UpdateC10(self) -> None:
+            self.MultIndex = 0
+            self.__updateTotal()
+
+        def UpdateC11(self) -> None:
+            if not self.Sens1.isEnabled():
+                self.Sens1.setEnabled(True)
+            self.MultIndex = 1
+            self.__updateTotal()
+
+        def UpdateC12(self) -> None:
+            if not self.Sens1.isEnabled():
+                self.Sens1.setEnabled(True)
+            self.MultIndex = 2
+            self.__updateTotal()
+
+        # Right Column
+        def UpdateC20(self) -> None:
+            if self.UnitIndex == 3:
+                self.Sens2.setEnabled(True)
+                self.Sens5.setEnabled(True)
+                self.Sensx10.setEnabled(True)
+                self.Sensx100.setEnabled(True)
+
+            self.UnitIndex = 0
+
+            # 1e-9 does not exist
+            if self.MultIndex == 0:
+                self.Sens1.setEnabled(False)
+                if self.BaseIndex == 0:
+                    self.Sens2.setChecked(True)
+                    self.UpdateC01()
+                    return
+            self.__updateTotal()
+            
+
+        def UpdateC21(self) -> None:
+            if not self.Sens1.isEnabled():
+                self.Sens1.setEnabled(True)
+            if self.UnitIndex == 3:
+                self.Sens2.setEnabled(True)
+                self.Sens5.setEnabled(True)
+                self.Sensx10.setEnabled(True)
+                self.Sensx100.setEnabled(True)
+            self.UnitIndex = 1
+            self.__updateTotal()
+
+        def UpdateC22(self) -> None:
+            if not self.Sens1.isEnabled():
+                self.Sens1.setEnabled(True)
+            if self.UnitIndex == 3:
+                self.Sens2.setEnabled(True)
+                self.Sens5.setEnabled(True)
+                self.Sensx10.setEnabled(True)
+                self.Sensx100.setEnabled(True)
+            self.UnitIndex = 2
+            self.__updateTotal()
+
+        def UpdateC23(self) -> None:
+            if not self.Sens1.isEnabled():
+                self.Sens1.setEnabled(True)
+
+            self.UnitIndex = 3
+
+            # 2e0 to 500e0 do not exist
+            self.Sens2.setEnabled(False)
+            self.Sens5.setEnabled(False)
+            self.Sensx10.setEnabled(False)
+            self.Sensx100.setEnabled(False)
+            if self.BaseIndex != 0:
+                self.Sens1.setChecked(True)
+                self.BaseIndex = 0
+            if self.MultIndex != 0:
+                self.Sensx1.setChecked(True)
+                self.MultIndex = 0
+            self.__updateTotal()
 
 
 def run():
