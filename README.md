@@ -26,6 +26,7 @@ The Tuning-Fork repository contains code related to the tuning fork setup at UvA
 ## GUI
 The GUI is not finished and lacks most support. See the [`GUI` branch](https://github.com/joshuadijksman/Tuning-Fork/tree/GUI) for more information and updates.
 Currently, the GUI consists of a Hardware main page and can be expanded with additional pages at the top for other experiments. The Hardware page is ment to serve as a general hub for connecting and setting up all Hardware components. For now the first design is concluded and tries to mimic the components themself, the functionality behind this has not yet been developped.
+When within the GUI branch, [run.py](https://github.com/joshuadijksman/Tuning-Fork/blob/GUI/run.py) is used for launching the GUI. [main_ui.py](https://github.com/joshuadijksman/Tuning-Fork/blob/GUI/main_ui.py) and [main_ui.ui](https://github.com/joshuadijksman/Tuning-Fork/blob/GUI/main_ui.ui) are the raw UI files and [commands.md](https://github.com/joshuadijksman/Tuning-Fork/blob/GUI/commands.md) shows the commands for launching the PySide6 Designer and Compiler (need to have a virtual environment active).
 
 ## Usage
 Every file contains a couple of functions that can be called. These functions either connect the Hardware, are used for internal calculations or are made for calibrations and measurements. An example of usage can be seen in [main.py](main.py), which only gets a few changes every time a different needs to be done.
