@@ -7,6 +7,6 @@
 <h3>Compiler:</h3>
 
 ```bash
-& ".venv\Scripts\pyside6-uic.exe" "UI\main_ui.ui" --output "UI\main_ui.py"
+& ".venv\Scripts\pyside6-uic.exe" "main_ui.ui" --output "main_ui.py"
 ```
 
