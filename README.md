@@ -25,6 +25,11 @@ The Tuning-Fork repository contains code related to the tuning fork setup at UvA
 
 ## GUI
 The GUI is not finished and lacks most support. See the [`GUI` branch](https://github.com/joshuadijksman/Tuning-Fork/tree/GUI) for more information and updates.
+Currently, the GUI consists of a Hardware main page and can be expanded with additional pages at the top for other experiments. The Hardware page is ment to serve as a general hub for connecting and setting up all Hardware components. For now the first design is concluded and tries to mimic the components themself, the functionality behind this has not yet been developped.
+
+## Usage
+Every file contains a couple of functions that can be called. These functions either connect the Hardware, are used for internal calculations or are made for calibrations and measurements. An example of usage can be seen in [main.py](main.py), which only gets a few changes every time a different needs to be done.
+The user is also welcome to add new measurements into the [measurements.py](measurements.py) file and make use of the different tools present in [PLL.py](PLL.py).
 
 ## Installation
 To install the necessary dependencies, run:
